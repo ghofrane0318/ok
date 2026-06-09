@@ -28,10 +28,9 @@ const contratSchema = new mongoose.Schema({
     ref: 'Tiers' 
   },
   // Version 2 - Client et Commercial
-  clientId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   commercialId: { 
     type: mongoose.Schema.Types.ObjectId, 

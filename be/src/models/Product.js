@@ -16,31 +16,13 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Middleware pour générer un code UNIQUE automatiquement
-productSchema.pre('save', async function(next) {
+productSchema.pre('save', function(next) {
   if (!this.codeProduit) {
-    const prefix = this.type === 'STEG' ? 'STEG' : 'STIR';
-    const cleanNom = this.nom.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase();
-    const Product = mongoose.model('Product');
-
-    // Boucle pour générer un code unique (max 10 tentatives)
-    let attempts = 0;
-    let codeUnique = false;
-
-    while (!codeUnique && attempts < 10) {
-      const random = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
-      const candidateCode = `${prefix}-${cleanNom}-${random}`;
-      const existing = await Product.findOne({ codeProduit: candidateCode });
-      if (!existing) {
-        this.codeProduit = candidateCode;
-        codeUnique = true;
-      }
-      attempts++;
-    }
-
-    // Fallback ultime avec timestamp
-    if (!codeUnique) {
-      this.codeProduit = `${prefix}-${cleanNom}-${Date.now().toString().slice(-6)}`;
-    }
+    const prefix    = this.type === 'STEG' ? 'STEG' : 'STIR';
+    const cleanNom  = this.nom.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase() || 'PROD';
+    const uniquePart = Date.now().toString(36).toUpperCase()
+                     + Math.random().toString(36).substring(2, 7).toUpperCase();
+    this.codeProduit = `${prefix}-${cleanNom}-${uniquePart}`;
   }
   next();
 });

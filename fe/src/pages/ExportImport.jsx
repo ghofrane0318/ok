@@ -422,10 +422,7 @@ function ExportImport() {
 
   return (
     <div className="export-page">
-      <div className="demo-banner">
-        📦 Gestion des Émissions (Export International) - {stats.total} émission(s)
-        {demoMode && <span style={{ marginLeft: '10px', background: '#ff9800', padding: '2px 8px', borderRadius: '12px' }}>🔧 MODE DÉMO</span>}
-      </div>
+      
 
       <div className="toast-container">
         {toasts.map(toast => (

@@ -1,38 +1,4 @@
-/* ============================================
-   STYLES GLOBAUX
-   ============================================ */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --primary-color: #1a3c5e;
-  --secondary-color: #3d5e7e;
-  --accent-color: #4e7cb9;
-  --success-color: #28a745;
-  --warning-color: #ffc107;
-  --danger-color: #dc3545;
-  --info-color: #17a2b8;
-  --light-bg: #f8f9fa;
-  --border-color: #dee2e6;
-  --text-dark: #2c3e50;
-  --text-light: #6c757d;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
-  --border-radius: 8px;
-  --transition: all 0.3s ease;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--light-bg);
-  color: var(--text-dark);
-  line-height: 1.6;
-}
+/* Variables et reset définis dans variables.css + base.css */
 
 /* ============================================
    CONTENEUR PRINCIPAL

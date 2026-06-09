@@ -15,6 +15,8 @@ import {
   StatusBar
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LANGUAGES, LangCode } from '../utils/translations';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeModal from '../components/QRCodeModal';
 
@@ -203,6 +205,7 @@ const validatePhone = (phone: string): boolean => {
 // ========== COMPOSANT PRINCIPAL ==========
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { lang, setLanguage, tr } = useLanguage();
 
   const [isEditing, setIsEditing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -430,6 +433,13 @@ export default function ProfileScreen() {
             fadeAnim={fadeAnim}
           />
         )}
+
+        <LanguageCard
+          currentLang={lang}
+          onSelectLang={setLanguage}
+          fadeAnim={fadeAnim}
+          label={tr('language')}
+        />
 
         <SecurityCard
           notificationsEnabled={notificationsEnabled}
@@ -816,6 +826,39 @@ const SecurityItem = React.memo(({
   </View>
 ));
 
+// ========== LANGUAGE CARD ==========
+interface LanguageCardProps {
+  currentLang: LangCode;
+  onSelectLang: (code: LangCode) => Promise<void>;
+  fadeAnim: Animated.Value;
+  label: string;
+}
+
+const LanguageCard = React.memo(({ currentLang, onSelectLang, fadeAnim, label }: LanguageCardProps) => (
+  <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
+    <View style={styles.cardHeader}>
+      <Text style={styles.cardTitle}>🌐 {label}</Text>
+    </View>
+    <View style={[styles.cardBody, styles.langRow]}>
+      {LANGUAGES.map((l) => {
+        const active = l.code === currentLang;
+        return (
+          <TouchableOpacity
+            key={l.code}
+            style={[styles.langBtn, active && styles.langBtnActive]}
+            onPress={() => onSelectLang(l.code)}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.langFlag}>{l.flag}</Text>
+            <Text style={[styles.langLabel, active && styles.langLabelActive]}>{l.label}</Text>
+            {active && <Text style={styles.langCheck}>✓</Text>}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  </Animated.View>
+));
+
 // ========== STYLES ==========
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f5fb' },
@@ -963,6 +1006,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 8
   },
   logoutButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  // ── LANGUAGE ──
+  langRow: { flexDirection: 'row', gap: 10, justifyContent: 'space-between' },
+  langBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 12, paddingHorizontal: 8,
+    borderRadius: 12, borderWidth: 1.5, borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc', gap: 4,
+  },
+  langBtnActive: {
+    borderColor: '#1a3c5e', backgroundColor: '#eff6ff',
+  },
+  langFlag:  { fontSize: 24 },
+  langLabel: { fontSize: 12, fontWeight: '600', color: '#5a7080', textAlign: 'center' },
+  langLabelActive: { color: '#1a3c5e', fontWeight: '800' },
+  langCheck: { fontSize: 11, color: '#1a3c5e', fontWeight: '800' },
 
   // ── FOOTER ──
   footer: { alignItems: 'center', paddingVertical: 24, marginBottom: 12 },

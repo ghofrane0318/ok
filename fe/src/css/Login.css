@@ -1,25 +1,4 @@
-/* Login.css */
-
-/* ── Variables ─────────────────────────────────────────────── */
-:root {
-  --login-dark:    #0d2b3e;
-  --login-darker:  #0a1428;
-  --login-mid:     #1a3c5e;
-  --login-border:  #e5e7eb;
-  --login-gray:    #6b7280;
-  --login-light:   #f9fafb;
-  --login-cyan:    #00d4ff;
-  --login-danger:  #ef4444;
-  --login-success: #10b981;
-  --login-radius:  10px;
-}
-
-/* ── Reset minimal ─────────────────────────────────────────── */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* Login.css — Variables et reset définis dans variables.css + base.css */
 
 /* ── Container principal ───────────────────────────────────── */
 .login-container {

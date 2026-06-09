@@ -5,7 +5,7 @@ const DEV_PC_IP = '192.168.1.249';
 
 const getSocketUrl = () => {
   if (__DEV__) {
-    return `http://${DEV_PC_IP}:5000`;
+    return `http://${DEV_PC_IP}:5001`;
   }
   return 'https://votre-api-production.com';
 };
@@ -23,7 +23,7 @@ export const connectSocket = (userId: string) => {
   console.log(`Connexion socket à ${SOCKET_URL}`);
   
   socket = io(SOCKET_URL, {
-    transports: ['websocket'],
+    transports: ['polling', 'websocket'],
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000

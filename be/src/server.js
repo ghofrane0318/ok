@@ -129,7 +129,14 @@ app.use('/api/historique',    historiqueRoutes);
 app.use('/api/home',          dashboardRoutes);
 app.use('/api/chatbot',       chatbotRoutes);
 app.use('/api/chat',          chatSessionRoutes);
-app.use('/api/contrats',      contratRoutes);
+app.use('/api/contrats', (req, res, next) => {
+  const orig = res.json.bind(res);
+  res.json = (body) => {
+    console.log(`🔍 /api/contrats ${req.method} → ${res.statusCode}`, JSON.stringify(body)?.slice(0, 200));
+    return orig(body);
+  };
+  next();
+}, contratRoutes);
 app.use('/api/contrats-vente',createCrudRoutes(require('./models/ContratVente'), 'ContratVente', {
   populateFields: ['produit', 'client']
 }));

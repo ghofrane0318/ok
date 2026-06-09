@@ -7,7 +7,7 @@ const DEV_PC_IP = '192.168.1.249';
 
 const getApiUrl = () => {
   if (__DEV__) {
-    return `http://${DEV_PC_IP}:5000/api`;
+    return `http://${DEV_PC_IP}:5001/api`;
   }
   return 'https://votre-api-production.com/api';
 };

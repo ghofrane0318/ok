@@ -296,8 +296,13 @@ const Products = () => {
   const handleProductSubmit = async (e) => {
     e.preventDefault();
     
-    if (!productForm.nom.trim() || !productForm.prixUnitaire || parseFloat(productForm.prixUnitaire) <= 0) {
-      toast.error('Nom et prix unitaire sont obligatoires');
+    const prix = parseFloat(productForm.prixUnitaire);
+    if (!productForm.nom.trim()) {
+      toast.error('Le nom du produit est obligatoire');
+      return;
+    }
+    if (!productForm.prixUnitaire || isNaN(prix) || prix <= 0) {
+      toast.error('Le prix unitaire doit être un nombre positif');
       return;
     }
 
@@ -361,14 +366,13 @@ const Products = () => {
         type: productForm.type || 'STEG',
         description: productForm.description || '',
         unite: productForm.unite || 'm³',
-        uniteMesure: mapUniteMesure(productForm.unite),  // ✅ Champ enum requis
-        prixUnitaire: parseFloat(productForm.prixUnitaire),
+        uniteMesure: mapUniteMesure(productForm.unite),
+        prixUnitaire: prix,
         stockInitial: parseInt(productForm.stockInitial) || 0,
         category: productForm.category || 'Autre',
-        codeProduit: editingProduct ? undefined : generateUniqueCode(productForm.nom, productForm.type)  // ✅ Code unique
       };
 
-      console.log('📤 Produit envoyé:', productToSend);
+      console.log('📤 Produit envoyé:', JSON.stringify(productToSend, null, 2));
 
       if (editingProduct) {
         const response = await axios.put(`http://localhost:5001/api/products/${editingProduct._id}`, productToSend, config);
@@ -385,8 +389,8 @@ const Products = () => {
       await fetchProduits();
 
     } catch (error) {
-      console.error('❌ Erreur création produit:', error);
-      console.error('❌ Réponse backend:', error.response?.data);
+      console.error('❌ Erreur création produit:', error.message);
+      console.error('❌ Réponse backend:', JSON.stringify(error.response?.data, null, 2));
 
       let errorMessage = 'Erreur lors de la sauvegarde';
       if (error.response?.data?.errors) {

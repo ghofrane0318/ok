@@ -1,13 +1,12 @@
-body {
-  font-family: Arial, sans-serif;
-}
-input, button {
-  margin: 5px 0;
-  padding: 5px;
-}
-table {
-  border-collapse: collapse;
-}
-th, td {
-  padding: 5px 10px;
-}
+/* ============================================================
+   SMART-TRADE 360° — Feuille de style principale
+   Importer uniquement ce fichier dans main.jsx.
+
+   Architecture :
+     variables.css  → tokens de design (couleurs, typo, spacing…)
+     base.css       → reset, corps, classes utilitaires partagées
+     [pages].css    → styles spécifiques à chaque page/composant
+   ============================================================ */
+
+@import './variables.css';
+@import './base.css';

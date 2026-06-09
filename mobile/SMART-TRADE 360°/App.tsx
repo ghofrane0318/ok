@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import { Text, View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 
 // Screens
@@ -146,11 +147,13 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+          </AuthProvider>
+        </LanguageProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

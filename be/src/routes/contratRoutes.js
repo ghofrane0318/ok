@@ -9,20 +9,18 @@ const ContratVente = require("../models/ContratVente");
 // ==================== LISTE DES CONTRATS ====================
 router.get('/', protectRoute, async (req, res) => {
   try {
-    let contrats;
-    
+    console.log(`📋 GET /contrats — user: ${req.user?.email} role: ${req.user?.role}`);
+    let contrats = [];
     if (req.user.role === 'Admin' || req.user.role === 'Commercial') {
       contrats = await Contrat.find()
         .populate('tiers', 'raisonSociale type code adresse matriculeFiscale telephone')
         .populate('produits.sousProduit', 'nom prixUnitaire uniteMesure codeProduit')
         .sort({ dateCreation: -1 });
-    } else {
-      contrats = [];
     }
-    
+    console.log(`✅ GET /contrats — ${contrats.length} contrats retournés`);
     res.json(contrats);
   } catch (err) {
-    console.error('Erreur getContrats:', err);
+    console.error('❌ Erreur getContrats:', err.message);
     res.status(500).json({ message: err.message });
   }
 });
@@ -33,6 +31,7 @@ router.post('/', protectRoute, async (req, res) => {
     const contratData = {
       ...req.body,
       createdBy: req.user._id,
+      clientId: req.body.clientId || req.body.tiers || req.user._id,
       montantTotal: req.body.produits?.reduce((total, p) => total + (p.quantite * p.prixUnitaire), 0) || 0
     };
     
@@ -154,8 +153,5 @@ router.get('/client/:clientId', protectRoute, contratController.getContrats);
 
 router.use('/vente', createCrudRoutes(ContratVente, 'ContratVente', {
   populateFields: ['produit', 'client']
-}));
-router.use('/', createCrudRoutes(Contrat, 'Contrat', {
-  populateFields: ['client', 'fournisseur', 'importateur']
 }));
 module.exports = router;

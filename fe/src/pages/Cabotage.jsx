@@ -287,14 +287,12 @@ const Cabotage = () => {
       numeroCabotage: numeroCabotage,
       produit: formData.produit,
       client: formData.client || 'STIR',
-      quantite: parseFloat(formData.quantite),
-      uniteMesure: 'm³',
-      origine: formData.origine,
-      destination: formData.destination,
-      navireId: formData.navireId,
-      dateChargement: formData.dateChargement || new Date().toISOString().split('T')[0],
-      dateDechargement: formData.dateDechargement || null,
-      statut: 'planifie'
+      navire:      formData.navireId,
+      portDepart:  formData.origine,
+      portArrivee: formData.destination,
+      dateDepart:  formData.dateChargement || new Date().toISOString().split('T')[0],
+      dateArrivee: formData.dateDechargement || undefined,
+      statut:      'Planifié'
     };
 
     try {

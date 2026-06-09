@@ -68,10 +68,12 @@ const MOCK_TIERS = [
   },
 ];
 
+const TYPE_STR = { 0: 'Client', 1: 'Fournisseur', 2: 'Transporteur' };
+
 const EMPTY_FORM = {
   raisonSociale: '', type: 0, adresse: '',
   email: '', telephone: '', matriculeFiscale: '',
-  pays: '', banque: '',
+  pays: '', banque: '', code: '',
 };
 
 function Tiers() {
@@ -185,6 +187,7 @@ function Tiers() {
       matriculeFiscale: item.matriculeFiscale || '',
       pays:             item.pays?._id  || item.pays  || '',
       banque:           item.banque?._id || item.banque || '',
+      code:             item.code             || '',
     });
     setShowModal(true);
   };
@@ -197,7 +200,11 @@ function Tiers() {
     try {
       const paysObj   = pays.find(p => p._id === form.pays)     || null;
       const banqueObj = banques.find(b => b._id === form.banque) || null;
-      const payload   = { ...form, type: toNum(form.type) };
+      const typeStr   = TYPE_STR[toNum(form.type)] || 'Client';
+      const autoCode  = form.code?.trim()
+        || form.matriculeFiscale?.trim()
+        || `${typeStr.toUpperCase().slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`;
+      const payload   = { ...form, type: typeStr, code: autoCode };
 
       if (isDemoMode) {
         const record = { _id: editingId || String(Date.now()), ...payload, pays: paysObj, banque: banqueObj };

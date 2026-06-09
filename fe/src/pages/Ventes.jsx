@@ -80,6 +80,7 @@ const Ventes = () => {
     numeroVente: '',
     produit: '',
     quantite: '',
+    dateVente: new Date().toISOString().split('T')[0],
     prixUnitaire: '',
     contratRef: ''
   });
@@ -188,10 +189,11 @@ const Ventes = () => {
   const ventesFiltrees = useMemo(() => {
     let resultats = [...allVentes];
 
-    // Filtre par date
+    // Filtre par date (vérifie dateVente, date, et createdAt comme fallback)
     resultats = resultats.filter(item => {
-      if (!item.dateVente) return false;
-      const itemDate = new Date(item.dateVente);
+      const rawDate = item.dateVente || item.date || item.createdAt;
+      if (!rawDate) return filterType === 'year'; // inclure si pas de date en mode annuel
+      const itemDate = new Date(rawDate);
       if (Number.isNaN(itemDate.getTime())) return false;
 
       if (filterType === 'month') {
@@ -260,7 +262,9 @@ const Ventes = () => {
       montantTotal,
       client: 'STEG',
       statut: 'en_attente',
-      dateVente: new Date().toISOString()
+      dateVente: formData.dateVente
+        ? new Date(formData.dateVente).toISOString()
+        : new Date().toISOString()
     };
 
     if (formData.contratRef?.trim()) {
@@ -315,12 +319,15 @@ const Ventes = () => {
 
   const handleEdit = useCallback((vente) => {
     setEditingVente(vente);
+    const rawDate = vente.dateVente || vente.date || vente.createdAt || '';
+    const dateForInput = rawDate ? rawDate.split('T')[0] : new Date().toISOString().split('T')[0];
     setFormData({
       numeroVente: vente.numeroVente || '',
       produit: vente.produit?._id || vente.produit || '',
       quantite: vente.quantite || '',
       prixUnitaire: vente.prixUnitaire || '',
-      contratRef: vente.contratRef || ''
+      contratRef: vente.contratRef || '',
+      dateVente: dateForInput,
     });
     setShowModal(true);
   }, []);
@@ -478,8 +485,12 @@ const Ventes = () => {
 
         <div className="filter-group">
           <label>📆 Année</label>
-          <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}>
-            {[2022, 2023, 2024, 2025, 2026].map(y => (
+          <select value={selectedYear} onChange={(e) => {
+            const y = parseInt(e.target.value, 10);
+            setSelectedYear(y);
+            setFilterType('year'); // passe en mode annuel automatiquement
+          }}>
+            {[2023, 2024, 2025, 2026].map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
@@ -500,7 +511,7 @@ const Ventes = () => {
       {/* Info bar */}
       <div className="info-bar">
         <span>Affichage pour : <strong>{getPeriodText()}</strong></span>
-        <span className="info-badge">📊 Total des ventes: {allVentes.length}</span>
+        <span className="info-badge">📊 {ventesFiltrees.length} vente{ventesFiltrees.length !== 1 ? 's' : ''} · Total: {allVentes.length}</span>
       </div>
 
       {/* Statistiques */}
@@ -657,6 +668,16 @@ const Ventes = () => {
                     placeholder="0.00"
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>📅 Date de vente *</label>
+                <input
+                  type="date"
+                  value={formData.dateVente}
+                  onChange={(e) => setFormData({ ...formData, dateVente: e.target.value })}
+                  required
+                />
               </div>
 
               <div className="form-group">

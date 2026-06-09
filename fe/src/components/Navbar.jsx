@@ -1,18 +1,71 @@
 // components/Navbar.jsx - Version finale optimisée
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTachometerAlt, faUsers, faBoxOpen, faBuilding, faFileContract,
   faShoppingCart, faTruckFast, faFileInvoiceDollar, faCheckCircle,
   faHistory, faBars, faRightFromBracket, faExchangeAlt, faChevronDown,
-  faBell, faExclamationTriangle, faRobot
+  faBell, faExclamationTriangle, faRobot, faGlobe
 } from '@fortawesome/free-solid-svg-icons';
 import '../css/Navbar.css';
+import { useLanguage } from '../store/languageStore';
+import { LANGUAGES } from '../utils/translations';
+
+const LANG_META = {
+  fr: { label: 'Français',  short: 'FR', icon: '🇫🇷' },
+  en: { label: 'English',   short: 'EN', icon: '🇬🇧' },
+  ar: { label: 'العربية',   short: 'AR', icon: '🇹🇳' },
+};
+
+function LanguageSwitcher() {
+  const { lang, setLanguage } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="lang-switcher" ref={ref}>
+      <button className="lang-btn" onClick={() => setOpen(v => !v)} aria-label="Changer la langue">
+        <FontAwesomeIcon icon={faGlobe} />
+        <span className="lang-btn__code">{LANG_META[lang].short}</span>
+        <span className="lang-btn__arrow">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="lang-dropdown" role="listbox">
+          {Object.entries(LANG_META).map(([code, meta]) => {
+            const active = code === lang;
+            return (
+              <button
+                key={code}
+                role="option"
+                aria-selected={active}
+                className={`lang-option${active ? ' lang-option--active' : ''}`}
+                onClick={() => { setLanguage(code); setOpen(false); }}
+              >
+                <span className="lang-option__icon">{meta.icon}</span>
+                <span className="lang-option__label">{meta.label}</span>
+                <span className="lang-option__short">{meta.short}</span>
+                {active && <span className="lang-option__check">✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { tr } = useLanguage();
 
   // ── Hooks avant tout return ────────────────────────────────
   const user = useMemo(() => {
@@ -86,7 +139,7 @@ function Navbar() {
   const dashboardLink = (
     <Link to={dashboardPath} className={`sidebar-link ${isActive(dashboardPath)}`} onClick={handleNavigation}>
       <FontAwesomeIcon icon={faTachometerAlt} />
-      <span>Dashboard</span>
+      <span>{tr('dashboard')}</span>
     </Link>
   );
 
@@ -113,76 +166,83 @@ function Navbar() {
   );
 
   // ── Routes par rôle ────────────────────────────────────────
+  const navLink = (to, icon, key) => (
+    <Link key={to} to={to} className={`sidebar-link ${isActive(to)}`} onClick={handleNavigation}>
+      <FontAwesomeIcon icon={icon} />
+      <span>{tr(key)}</span>
+    </Link>
+  );
+
   const renderAdminRoutes = () => (
     <>
-      <Link to="/users" className={`sidebar-link ${isActive('/users')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faUsers} /><span>Utilisateurs</span></Link>
-      <Link to="/referentiels" className={`sidebar-link ${isActive('/referentiels')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBuilding} /><span>Référentiels</span></Link>
-      <Link to="/stock" className={`sidebar-link ${isActive('/stock')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBoxOpen} /><span>Stock</span></Link>
-      <Link to="/contrats" className={`sidebar-link ${isActive('/contrats')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileContract} /><span>Contrats</span></Link>
-      <Link to="/commandes" className={`sidebar-link ${isActive('/commandes')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faShoppingCart} /><span>Commandes</span></Link>
-      <Link to="/livraisons" className={`sidebar-link ${isActive('/livraisons')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faTruckFast} /><span>Livraisons</span></Link>
-      <Link to="/factures" className={`sidebar-link ${isActive('/factures')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Factures</span></Link>
-      <Link to="/export-import" className={`sidebar-link ${isActive('/export-import')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExchangeAlt} /><span>Export</span></Link>
-      <Link to="/conformite" className={`sidebar-link ${isActive('/conformite')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faCheckCircle} /><span>Conformité</span></Link>
-      <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
-      <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
-      <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
-      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
+      {navLink('/users',          faUsers,               'users')}
+      {navLink('/referentiels',   faBuilding,            'referentiels')}
+      {navLink('/stock',          faBoxOpen,             'stock')}
+      {navLink('/contrats',       faFileContract,        'contracts')}
+      {navLink('/commandes',      faShoppingCart,        'orders')}
+      {navLink('/livraisons',     faTruckFast,           'deliveries')}
+      {navLink('/factures',       faFileInvoiceDollar,   'invoices')}
+      {navLink('/export-import',  faExchangeAlt,         'export')}
+      {navLink('/conformite',     faCheckCircle,         'compliance')}
+      {navLink('/tiers',          faFileInvoiceDollar,   'tiers')}
+      {navLink('/historique',     faHistory,             'history')}
+      {navLink('/notifications',  faBell,                'notifications')}
+      {navLink('/penalites-retard', faExclamationTriangle, 'penalties')}
+      {navLink('/chatbot',        faRobot,               'assistant')}
       {renderDropdownProduitsNationaux()}
     </>
   );
 
   const renderCommercialRoutes = () => (
     <>
-      <Link to="/contrats" className={`sidebar-link ${isActive('/contrats')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileContract} /><span>Contrats</span></Link>
-      <Link to="/commandes" className={`sidebar-link ${isActive('/commandes')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faShoppingCart} /><span>Commandes</span></Link>
-      <Link to="/factures" className={`sidebar-link ${isActive('/factures')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Factures</span></Link>
-      <Link to="/export-import" className={`sidebar-link ${isActive('/export-import')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExchangeAlt} /><span>Export</span></Link>
-      <Link to="/conformite" className={`sidebar-link ${isActive('/conformite')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faCheckCircle} /><span>Conformité</span></Link>
-      <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
-      <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
-      <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
-      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
+      {navLink('/contrats',         faFileContract,      'contracts')}
+      {navLink('/commandes',        faShoppingCart,      'orders')}
+      {navLink('/factures',         faFileInvoiceDollar, 'invoices')}
+      {navLink('/export-import',    faExchangeAlt,       'export')}
+      {navLink('/conformite',       faCheckCircle,       'compliance')}
+      {navLink('/tiers',            faFileInvoiceDollar, 'tiers')}
+      {navLink('/historique',       faHistory,           'history')}
+      {navLink('/notifications',    faBell,              'notifications')}
+      {navLink('/penalites-retard', faExclamationTriangle,'penalties')}
+      {navLink('/chatbot',          faRobot,             'assistant')}
       {renderDropdownProduitsNationaux()}
     </>
   );
 
   const renderFournisseurRoutes = () => (
     <>
-      <Link to="/commandes" className={`sidebar-link ${isActive('/commandes')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faShoppingCart} /><span>Commandes</span></Link>
-      <Link to="/livraisons" className={`sidebar-link ${isActive('/livraisons')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faTruckFast} /><span>Livraisons</span></Link>
-      <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
-      <Link to="/mes-factures" className={`sidebar-link ${isActive('/mes-factures')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Mes Factures</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
-      <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
-      <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
-      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
+      {navLink('/commandes',        faShoppingCart,      'orders')}
+      {navLink('/livraisons',       faTruckFast,         'deliveries')}
+      {navLink('/tiers',            faFileInvoiceDollar, 'tiers')}
+      {navLink('/mes-factures',     faFileInvoiceDollar, 'myInvoices')}
+      {navLink('/historique',       faHistory,           'history')}
+      {navLink('/notifications',    faBell,              'notifications')}
+      {navLink('/penalites-retard', faExclamationTriangle,'penalties')}
+      {navLink('/chatbot',          faRobot,             'assistant')}
     </>
   );
 
   const renderClientRoutes = () => (
     <>
-      <Link to="/mes-commandes" className={`sidebar-link ${isActive('/mes-commandes')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faShoppingCart} /><span>Mes Commandes</span></Link>
-      <Link to="/mes-livraisons" className={`sidebar-link ${isActive('/mes-livraisons')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faTruckFast} /><span>Mes Livraisons</span></Link>
-      <Link to="/mes-factures" className={`sidebar-link ${isActive('/mes-factures')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Mes Factures</span></Link>
-      <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
-      <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
-      <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
-      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
+      {navLink('/mes-commandes',    faShoppingCart,      'myOrders')}
+      {navLink('/mes-livraisons',   faTruckFast,         'myDeliveries')}
+      {navLink('/mes-factures',     faFileInvoiceDollar, 'myInvoices')}
+      {navLink('/tiers',            faFileInvoiceDollar, 'tiers')}
+      {navLink('/historique',       faHistory,           'history')}
+      {navLink('/notifications',    faBell,              'notifications')}
+      {navLink('/penalites-retard', faExclamationTriangle,'penalties')}
+      {navLink('/chatbot',          faRobot,             'assistant')}
     </>
   );
 
   const renderTransporteurRoutes = () => (
     <>
-      <Link to="/transporteur-livraisons" className={`sidebar-link ${isActive('/transporteur-livraisons')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faTruckFast} /><span>Mes Livraisons</span></Link>
-      <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
-      <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
-      <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
-      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
+      {navLink('/transporteur-livraisons', faTruckFast,         'myDeliveries')}
+      {navLink('/tiers',                   faFileInvoiceDollar, 'tiers')}
+      {navLink('/historique',              faHistory,           'history')}
+      {navLink('/notifications',           faBell,              'notifications')}
+      {navLink('/penalites-retard',        faExclamationTriangle,'penalties')}
+      {navLink('/chatbot',                 faRobot,             'assistant')}
     </>
   );
 
@@ -195,6 +255,8 @@ function Navbar() {
         </button>
 
         <div className="topbar-right">
+          <LanguageSwitcher />
+
           {/* Profil dans le topbar - visible pour tous les rôles */}
           <Link to="/profile" className="topbar-profile-link" title={`Profil — ${role || 'Invité'}`}>
             <span className="topbar-avatar">{initiales}</span>

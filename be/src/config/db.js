@@ -5,6 +5,26 @@ const dns = require("dns");
 // Solution au problème "getaddrinfo ENOTFOUND" causé par DNS local défaillant
 dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 
+// Supprime les index MongoDB devenus obsolètes (anciens champs renommés/supprimés)
+const dropObsoleteIndexes = async () => {
+  const targets = [
+    { collection: 'products', index: 'code_1' },
+    { collection: 'products', index: 'codeProduit_1' },
+  ];
+  for (const { collection, index } of targets) {
+    try {
+      const col = mongoose.connection.db.collection(collection);
+      const indexes = await col.indexes();
+      if (indexes.some(i => i.name === index)) {
+        await col.dropIndex(index);
+        console.log(`🗑️  Index obsolète supprimé : ${collection}.${index}`);
+      }
+    } catch (_) {
+      // Index déjà absent — aucun problème
+    }
+  }
+};
+
 const connectDB = async () => {
   const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/pfe";
 
@@ -40,6 +60,9 @@ const connectDB = async () => {
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
   }
+
+  // Supprimer les index obsolètes qui causent des conflits
+  await dropObsoleteIndexes();
 
   mongoose.connection.on('disconnected', () =>
     console.warn("⚠️ MongoDB déconnecté - reconnexion automatique...")

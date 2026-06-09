@@ -105,33 +105,43 @@
   align-items: center;
 }
 
-.btn-reset,
-.btn-debug {
+.btn-reset {
   padding: 10px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.15);
-  color: white;
-  border-radius: 6px;
+  border: none;
+  background-color: #e53e3e;
+  color: #ffffff;
+  border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background 0.2s, transform 0.15s;
   display: flex;
   align-items: center;
   gap: 6px;
+  box-shadow: 0 2px 6px rgba(229,62,62,0.35);
 }
 
-.btn-reset:hover,
-.btn-debug:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-2px);
+.btn-reset:hover  { background-color: #c53030; transform: translateY(-2px); }
+.btn-reset:active { transform: translateY(0); }
+
+.btn-debug {
+  padding: 10px 18px;
+  border: none;
+  background-color: #2f855a;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(47,133,90,0.35);
 }
 
-.btn-reset:active,
-.btn-debug:active {
-  transform: translateY(0);
-}
+.btn-debug:hover  { background-color: #276749; transform: translateY(-2px); }
+.btn-debug:active { transform: translateY(0); }
 
 /* ============================================
    CARTES STATISTIQUES

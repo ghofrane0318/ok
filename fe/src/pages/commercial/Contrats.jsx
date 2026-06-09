@@ -168,20 +168,42 @@ function Contrats() {
     const total = calculateTotal();
     const base = {
       numeroContrat: form.numeroContrat || generateContratNumber(),
-      devise: form.devise,
-      montantTotal: total,
-      statut: form.statut,
+      type:          form.type === 'Export' ? 'Vente' : 'Vente',
+      devise:        form.devise,
+      montantTotal:  total,
+      statut:        form.statut,
+      dateDebut:     form.dateDebut || undefined,
+      dateFin:       form.dateFin   || undefined,
+      tiers:         form.tiers || undefined,
+      produits:      form.produits
+        .filter(p => p.sousProduit && p.quantite && p.prixUnitaire)
+        .map(p => ({
+          sousProduit:  p.sousProduit,
+          quantite:     Number(p.quantite),
+          prixUnitaire: Number(p.prixUnitaire),
+        })),
+      incoterm:             form.incoterm,
+      conditionsLivraison:  form.conditionsLivraison,
+      douane:               form.douane,
+      paysDestination:      form.paysDestination,
+      portDepart:           form.portDepart,
+      portArrivee:          form.portArrivee,
     };
     if (form.type === 'Export') {
-      return { ...base, type: 'export', importateur: form.tiers };
+      base.type = 'Vente';
+      base.importateur = form.tiers;
+    } else {
+      base.client = form.tiers;
     }
-    return { ...base, type: 'vente', client: form.tiers };
+    return base;
   }, [form, calculateTotal, generateContratNumber]);
 
   const handleSave = useCallback(async () => {
     if (!canCreate) { showToast('Accès refusé', 'error'); return; }
     if (!form.numeroContrat?.trim()) { showToast('Le numéro de contrat est requis', 'error'); return; }
     if (!form.tiers) { showToast('Sélectionnez un partenaire', 'error'); return; }
+    if (!form.dateFin) { showToast('La date de fin est requise', 'error'); return; }
+    if (form.dateFin <= form.dateDebut) { showToast('La date de fin doit être après la date de début', 'error'); return; }
 
     setSaving(true);
     try {
@@ -641,14 +663,27 @@ function Contrats() {
 
               <div className="form-row">
                 <div className="form-group">
+                  <label>Date de début *</label>
+                  <input type="date" value={form.dateDebut} onChange={e => setForm({ ...form, dateDebut: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Date de fin *</label>
+                  <input type="date" value={form.dateFin} onChange={e => setForm({ ...form, dateFin: e.target.value })} min={form.dateDebut} />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
                   <label>Partenaire *</label>
                   <select value={form.tiers} onChange={e => setForm({ ...form, tiers: e.target.value })}>
-                    <option value="">Sélectionner</option>
-                    {tiersForForm.map(u => (
-                      <option key={u._id} value={u._id}>
-                        {u.nom || u.raisonSociale || u.email} ({u.role})
-                      </option>
-                    ))}
+                    {[
+                      <option key="__empty" value="">Sélectionner</option>,
+                      ...tiersForForm.map((u, i) => (
+                        <option key={u._id || u.id || `tiers-${i}`} value={u._id || u.id}>
+                          {u.nom || u.raisonSociale || u.email} ({u.role})
+                        </option>
+                      ))
+                    ]}
                   </select>
                 </div>
                 <div className="form-group">
@@ -685,8 +720,14 @@ function Contrats() {
               {form.produits.map((prod, idx) => (
                 <div key={idx} className="produit-ligne">
                   <select value={prod.sousProduit} onChange={e => handleProductChange(idx, 'sousProduit', e.target.value)}>
-                    <option value="">Sélectionner produit</option>
-                    {produits.map(p => (<option key={p._id} value={p._id}>{p.nom}</option>))}
+                    {[
+                      <option key="__empty" value="">Sélectionner produit</option>,
+                      ...produits.map((p, pi) => (
+                        <option key={p._id || p.id || `prod-${pi}`} value={p._id || p.id}>
+                          {p.nom}
+                        </option>
+                      ))
+                    ]}
                   </select>
                   <input type="number" placeholder="Qté" value={prod.quantite} onChange={e => handleProductChange(idx, 'quantite', e.target.value)} min="1" />
                   <input type="number" placeholder="Prix" value={prod.prixUnitaire} onChange={e => handleProductChange(idx, 'prixUnitaire', e.target.value)} min="0" step="0.01" />

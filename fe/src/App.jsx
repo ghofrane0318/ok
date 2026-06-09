@@ -91,14 +91,6 @@ function MobileOnly() {
   );
 }
 
-function MobileGate({ page: Page, adminRedirect = false }) {
-  const user = (() => { try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; } })();
-  const role = user?.role;
-  if (role === 'Admin') {
-    return adminRedirect ? <Navigate to="/dashboard" replace /> : <Page />;
-  }
-  return <MobileOnly />;
-}
 
 function AppLayout() {
   const location = useLocation();
@@ -108,7 +100,7 @@ function AppLayout() {
   return (
     <div className={showNavbar ? 'app-layout' : ''}>
       {showNavbar && <Navbar />}
-      <div className="page-content">
+      <div className={showNavbar ? 'page-content' : ''}>
         <Routes>
 
           {/* ── Publiques ─────────────────────────────────────── */}
