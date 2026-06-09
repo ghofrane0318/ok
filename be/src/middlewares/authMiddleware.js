@@ -144,8 +144,9 @@ const isLivreur = (req, res, next) => {
   return authorize('livreur')(req, res, next);
 };
 
-module.exports = { 
-  protect, 
+module.exports = {
+  protect,
+  protectRoute: protect,   // alias used by some route files
   authorize,
   isAdmin,
   isClient,

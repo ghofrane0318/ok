@@ -1,12 +1,13 @@
-// routes/contratRoutes.js
-const express = require('express');
+﻿const express = require("express");
 const router = express.Router();
-const { protect } = require('../middlewares/authMiddleware');
-const { authorizeRoles } = require('../middlewares/roleMiddleware');
-const Contrat = require('../models/Contrat');
+const { protectRoute } = require("../middlewares/authMiddleware");
+const contratController = require("../controllers/contratController");
+const createCrudRoutes = require("../controllers/crudController");
+const Contrat = require("../models/Contrat");
+const ContratVente = require("../models/ContratVente");
 
 // ==================== LISTE DES CONTRATS ====================
-router.get('/', protect, authorizeRoles('Admin', 'Commercial'), async (req, res) => {
+router.get('/', protectRoute, async (req, res) => {
   try {
     let contrats;
     
@@ -26,8 +27,8 @@ router.get('/', protect, authorizeRoles('Admin', 'Commercial'), async (req, res)
   }
 });
 
-// ==================== CRÉER UN CONTRAT ====================
-router.post('/', protect, authorizeRoles('Commercial'), async (req, res) => {
+// ==================== CRÃ‰ER UN CONTRAT ====================
+router.post('/', protectRoute, async (req, res) => {
   try {
     const contratData = {
       ...req.body,
@@ -48,15 +49,15 @@ router.post('/', protect, authorizeRoles('Commercial'), async (req, res) => {
 });
 
 // ==================== MODIFIER UN CONTRAT ====================
-router.put('/:id', protect, authorizeRoles('Commercial'), async (req, res) => {
+router.put('/:id', protectRoute, async (req, res) => {
   try {
     const contrat = await Contrat.findById(req.params.id);
     if (!contrat) {
-      return res.status(404).json({ message: 'Contrat non trouvé' });
+      return res.status(404).json({ message: 'Contrat non trouvÃ©' });
     }
     
-    if (contrat.statut === 'Validé') {
-      return res.status(400).json({ message: 'Impossible de modifier un contrat déjà validé' });
+    if (contrat.statut === 'ValidÃ©') {
+      return res.status(400).json({ message: 'Impossible de modifier un contrat dÃ©jÃ  validÃ©' });
     }
     
     const updatedData = {
@@ -80,18 +81,18 @@ router.put('/:id', protect, authorizeRoles('Commercial'), async (req, res) => {
 });
 
 // ==================== VALIDER UN CONTRAT ====================
-router.put('/:id/valider', protect, authorizeRoles('Commercial'), async (req, res) => {
+router.put('/:id/valider', protectRoute, async (req, res) => {
   try {
     const contrat = await Contrat.findById(req.params.id);
     if (!contrat) {
-      return res.status(404).json({ message: 'Contrat non trouvé' });
+      return res.status(404).json({ message: 'Contrat non trouvÃ©' });
     }
     
-    if (contrat.statut === 'Validé') {
-      return res.status(400).json({ message: 'Ce contrat est déjà validé' });
+    if (contrat.statut === 'ValidÃ©') {
+      return res.status(400).json({ message: 'Ce contrat est dÃ©jÃ  validÃ©' });
     }
     
-    contrat.statut = 'Validé';
+    contrat.statut = 'ValidÃ©';
     contrat.dateValidation = Date.now();
     await contrat.save();
     
@@ -99,7 +100,7 @@ router.put('/:id/valider', protect, authorizeRoles('Commercial'), async (req, re
       .populate('tiers', 'raisonSociale type')
       .populate('produits.sousProduit', 'nom prixUnitaire uniteMesure');
     
-    res.json({ message: 'Contrat validé avec succès', contrat: populatedContrat });
+    res.json({ message: 'Contrat validÃ© avec succÃ¨s', contrat: populatedContrat });
   } catch (err) {
     console.error('Erreur validerContrat:', err);
     res.status(500).json({ message: err.message });
@@ -107,19 +108,19 @@ router.put('/:id/valider', protect, authorizeRoles('Commercial'), async (req, re
 });
 
 // ==================== SUPPRIMER UN CONTRAT ====================
-router.delete('/:id', protect, authorizeRoles('Commercial'), async (req, res) => {
+router.delete('/:id', protectRoute, async (req, res) => {
   try {
     const contrat = await Contrat.findById(req.params.id);
     if (!contrat) {
-      return res.status(404).json({ message: 'Contrat non trouvé' });
+      return res.status(404).json({ message: 'Contrat non trouvÃ©' });
     }
     
-    if (contrat.statut === 'Validé') {
-      return res.status(400).json({ message: 'Impossible de supprimer un contrat déjà validé' });
+    if (contrat.statut === 'ValidÃ©') {
+      return res.status(400).json({ message: 'Impossible de supprimer un contrat dÃ©jÃ  validÃ©' });
     }
     
     await Contrat.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Contrat supprimé avec succès' });
+    res.json({ message: 'Contrat supprimÃ© avec succÃ¨s' });
   } catch (err) {
     console.error('Erreur deleteContrat:', err);
     res.status(400).json({ message: err.message });
@@ -127,27 +128,34 @@ router.delete('/:id', protect, authorizeRoles('Commercial'), async (req, res) =>
 });
 
 // ==================== EXPORT PDF ====================
-router.get('/:id/export-pdf', protect, async (req, res) => {
+router.get('/:id/export-pdf', protectRoute, async (req, res) => {
   try {
     const contrat = await Contrat.findById(req.params.id)
       .populate('tiers', 'raisonSociale type code adresse matriculeFiscale telephone email')
       .populate('produits.sousProduit', 'nom prixUnitaire uniteMesure codeProduit');
     
     if (!contrat) {
-      return res.status(404).json({ message: 'Contrat non trouvé' });
+      return res.status(404).json({ message: 'Contrat non trouvÃ©' });
     }
     
-    // Vérification des droits
+    // VÃ©rification des droits
     if (req.user.role !== 'Admin' && req.user.role !== 'Commercial') {
-      return res.status(403).json({ message: 'Accès non autorisé' });
+      return res.status(403).json({ message: 'AccÃ¨s non autorisÃ©' });
     }
     
-    // Retourner les données du contrat pour génération PDF côté frontend
+    // Retourner les donnÃ©es du contrat pour gÃ©nÃ©ration PDF cÃ´tÃ© frontend
     res.json(contrat);
   } catch (error) {
     console.error('Erreur export PDF:', error);
     res.status(500).json({ message: error.message });
   }
 });
+router.get('/client/:clientId', protectRoute, contratController.getContrats);
 
+router.use('/vente', createCrudRoutes(ContratVente, 'ContratVente', {
+  populateFields: ['produit', 'client']
+}));
+router.use('/', createCrudRoutes(Contrat, 'Contrat', {
+  populateFields: ['client', 'fournisseur', 'importateur']
+}));
 module.exports = router;

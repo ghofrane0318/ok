@@ -9,19 +9,6 @@ router.get('/test', (req, res) => {
   res.json({ message: '✅ Route commandes fonctionne!', timestamp: new Date() });
 });
 
-router.get('/', protect, async (req, res) => {
-  try {
-    const { statut } = req.query;
-    const filter = statut ? { statut } : {};
-    const commandes = await Commande.find(filter)
-      .populate('client', 'raisonSociale')
-      .populate('fournisseur', 'raisonSociale')
-      .populate('importateur', 'raisonSociale');
-    res.json(commandes);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 // Routes protégées
 router.get('/client', protect, authorizeRoles('Client'), commandeController.getClientCommandes);
 router.get('/', protect, commandeController.getCommandes);

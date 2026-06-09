@@ -74,7 +74,7 @@ function MobileOnly() {
         Disponible uniquement sur mobile
       </h2>
       <p style={{ color: '#666', maxWidth: '360px', lineHeight: '1.6' }}>
-        Cette fonctionnalité est réservée à l'application mobile ETAP.
+        Cette fonctionnalité est réservée à l'application mobile SMART-TRADE 360°.
         Rendez-vous sur votre profil pour obtenir votre QR Code et accéder à l'application.
       </p>
       <button
@@ -166,12 +166,12 @@ function AppLayout() {
           <Route path="/factures"      element={<Factures />} />
           <Route path="/export-import" element={<ExportImport />} />
           <Route path="/conformite"    element={<Conformite />} />
-          <Route path="/historique"    element={<MobileGate page={Historique} />} />
+          <Route path="/historique"    element={<MobileOnly />} />
 
-          {/* ── Sprint 5 — Nouvelles pages ───────────────────── */}
-          <Route path="/notifications"    element={<MobileGate page={Notifications} />} />
-          <Route path="/penalites-retard" element={<MobileGate page={PenalitesRetard} />} />
-          <Route path="/chatbot"          element={<MobileGate page={Chatbot} adminRedirect={true} />} />
+          {/* ── Sprint 5 — Mobile uniquement (tous rôles) ────── */}
+          <Route path="/notifications"    element={<MobileOnly />} />
+          <Route path="/penalites-retard" element={<MobileOnly />} />
+          <Route path="/chatbot"          element={<MobileOnly />} />
 
         </Routes>
       </div>

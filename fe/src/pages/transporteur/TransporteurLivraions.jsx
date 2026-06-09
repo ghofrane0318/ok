@@ -4,230 +4,28 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTruck, faCheckCircle, faPlay, faSync, faBuilding, faUser, faBox, faCalendar, faMapMarkerAlt, faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import '../../css/TransporteurLivraisons.css';
 
-// ==================== DONNÉES MOCKÉES ====================
-const MOCK_LIVRAISONS = [
-  {
-    _id: 'liv1',
-    numeroLivraison: 'LIV-2024-0001',
-    commande: { 
-      _id: 'cmd1', 
-      numeroCommande: 'CMD-2024-0001',
-      client: { 
-        nom: 'STEG Tunis', 
-        type: 'client',
-        adresse: 'Rue des Énergies, Tunis',
-        telephone: '71 123 456',
-        email: 'contact@steg.tn'
-      }
-    },
-    transporteur: { _id: 't1', nom: 'TransExpress Tunisie' },
-    etat: 'Prête',
-    dateCreation: '2024-05-10T08:00:00Z',
-    dateArriveePrevue: '2024-05-15T18:00:00Z',
-    produits: [
-      { nom: 'Gasoil Premium', quantite: 5000, unite: 'L' },
-      { nom: 'Essence Sans Plomb', quantite: 3000, unite: 'L' }
-    ],
-    origine: 'Dépôt Rades',
-    destination: 'Dépôt STEG Tunis'
-  },
-  {
-    _id: 'liv2',
-    numeroLivraison: 'LIV-2024-0002',
-    commande: { 
-      _id: 'cmd2', 
-      numeroCommande: 'CMD-2024-0002',
-      fournisseur: { 
-        nom: 'STIR Bizerte', 
-        type: 'fournisseur',
-        adresse: 'Zone Industrielle, Bizerte',
-        telephone: '72 987 654',
-        email: 'contact@stir.tn'
-      }
-    },
-    transporteur: { _id: 't1', nom: 'TransExpress Tunisie' },
-    etat: 'En cours',
-    dateCreation: '2024-05-12T10:30:00Z',
-    dateArriveePrevue: '2024-05-18T14:00:00Z',
-    dateLivraisonReelle: null,
-    produits: [
-      { nom: 'Fuel Lourd', quantite: 10000, unite: 'L' },
-      { nom: 'Gasoil Maritime', quantite: 7500, unite: 'L' }
-    ],
-    origine: 'Dépôt STIR Bizerte',
-    destination: 'Dépôt Rades'
-  },
-  {
-    _id: 'liv3',
-    numeroLivraison: 'LIV-2024-0003',
-    commande: { 
-      _id: 'cmd3', 
-      numeroCommande: 'CMD-2024-0003',
-      client: { 
-        nom: 'STEG Sfax', 
-        type: 'client',
-        adresse: 'Route de la Pétrolière, Sfax',
-        telephone: '74 456 789',
-        email: 'sfax@steg.tn'
-      }
-    },
-    transporteur: { _id: 't2', nom: 'LogiTunis Transport' },
-    etat: 'Livrée',
-    dateCreation: '2024-05-08T09:15:00Z',
-    dateArriveePrevue: '2024-05-12T16:00:00Z',
-    dateLivraison: '2024-05-12T14:30:00Z',
-    produits: [
-      { nom: 'Gaz Naturel', quantite: 8000, unite: 'm³' }
-    ],
-    origine: 'Dépôt Rades',
-    destination: 'Dépôt STEG Sfax'
-  },
-  {
-    _id: 'liv4',
-    numeroLivraison: 'LIV-2024-0004',
-    commande: { 
-      _id: 'cmd4', 
-      numeroCommande: 'CMD-2024-0004',
-      fournisseur: { 
-        nom: 'Société Tunisienne de Navigation', 
-        type: 'fournisseur',
-        adresse: 'Port de la Goulette, Tunis',
-        telephone: '71 555 777',
-        email: 'contact@stn.tn'
-      }
-    },
-    transporteur: { _id: 't2', nom: 'LogiTunis Transport' },
-    etat: 'Prête',
-    dateCreation: '2024-05-14T11:00:00Z',
-    dateArriveePrevue: '2024-05-20T09:00:00Z',
-    produits: [
-      { nom: 'Gasoil Maritime', quantite: 15000, unite: 'L' },
-      { nom: 'Lubrifiants', quantite: 2000, unite: 'L' }
-    ],
-    origine: 'Port de la Goulette',
-    destination: 'Dépôt Rades'
-  },
-  {
-    _id: 'liv5',
-    numeroLivraison: 'LIV-2024-0005',
-    commande: { 
-      _id: 'cmd5', 
-      numeroCommande: 'CMD-2024-0005',
-      client: { 
-        nom: 'STEG Sousse', 
-        type: 'client',
-        adresse: 'Zone Industrielle, Sousse',
-        telephone: '73 234 567',
-        email: 'sousse@steg.tn'
-      }
-    },
-    transporteur: { _id: 't3', nom: 'Rapid Transport' },
-    etat: 'En cours',
-    dateCreation: '2024-05-13T14:20:00Z',
-    dateArriveePrevue: '2024-05-19T11:00:00Z',
-    dateLivraisonReelle: null,
-    produits: [
-      { nom: 'Essence Sans Plomb', quantite: 4500, unite: 'L' }
-    ],
-    origine: 'Dépôt Rades',
-    destination: 'Dépôt STEG Sousse'
-  },
-  {
-    _id: 'liv6',
-    numeroLivraison: 'LIV-2024-0006',
-    commande: { 
-      _id: 'cmd6', 
-      numeroCommande: 'CMD-2024-0006',
-      fournisseur: { 
-        nom: 'STIR Zarzis', 
-        type: 'fournisseur',
-        adresse: 'Port de Zarzis, Médenine',
-        telephone: '75 888 999',
-        email: 'zarzis@stir.tn'
-      }
-    },
-    transporteur: { _id: 't3', nom: 'Rapid Transport' },
-    etat: 'Livrée',
-    dateCreation: '2024-05-09T07:45:00Z',
-    dateArriveePrevue: '2024-05-14T20:00:00Z',
-    dateLivraison: '2024-05-14T18:15:00Z',
-    produits: [
-      { nom: 'Gasoil Premium', quantite: 12000, unite: 'L' }
-    ],
-    origine: 'Port de Zarzis',
-    destination: 'Dépôt Rades'
-  },
-  {
-    _id: 'liv7',
-    numeroLivraison: 'LIV-2024-0007',
-    commande: { 
-      _id: 'cmd7', 
-      numeroCommande: 'CMD-2024-0007',
-      client: { 
-        nom: 'STEG Gabès', 
-        type: 'client',
-        adresse: 'Route de l\'Industrie, Gabès',
-        telephone: '75 321 654',
-        email: 'gabes@steg.tn'
-      }
-    },
-    transporteur: { _id: 't1', nom: 'TransExpress Tunisie' },
-    etat: 'Prête',
-    dateCreation: '2024-05-15T09:30:00Z',
-    dateArriveePrevue: '2024-05-22T15:00:00Z',
-    produits: [
-      { nom: 'Gaz Naturel', quantite: 6000, unite: 'm³' },
-      { nom: 'Fuel Lourd', quantite: 5000, unite: 'L' }
-    ],
-    origine: 'Dépôt Rades',
-    destination: 'Dépôt STEG Gabès'
-  },
-  {
-    _id: 'liv8',
-    numeroLivraison: 'LIV-2024-0008',
-    commande: { 
-      _id: 'cmd8', 
-      numeroCommande: 'CMD-2024-0008',
-      fournisseur: { 
-        nom: 'Compagnie Tunisienne de Navigation', 
-        type: 'fournisseur',
-        adresse: 'Port de Sfax',
-        telephone: '74 111 222',
-        email: 'ctn@navigation.tn'
-      }
-    },
-    transporteur: { _id: 't2', nom: 'LogiTunis Transport' },
-    etat: 'En cours',
-    dateCreation: '2024-05-14T16:45:00Z',
-    dateArriveePrevue: '2024-05-21T10:00:00Z',
-    dateLivraisonReelle: null,
-    produits: [
-      { nom: 'Gasoil Maritime', quantite: 20000, unite: 'L' }
-    ],
-    origine: 'Port de Sfax',
-    destination: 'Dépôt Rades'
-  }
-];
-
 function TransporteurLivraisons() {
   const [livraisons, setLivraisons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('prete');
-  const [useMockData, setUseMockData] = useState(true);
 
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isTransporteur = user.role === 'Transporteur';
+  const userId = user._id || user.id;
 
   const api = axios.create({
     baseURL: 'http://localhost:5001/api',
     headers: { Authorization: `Bearer ${token}` }
   });
 
+  // Génération d'ID unique pour toasts (évite duplications)
+  const toastIdCounter = React.useRef(0);
+
   const addToast = (message, type = 'success') => {
-    const id = Date.now();
+    toastIdCounter.current += 1;
+    const id = `toast-${Date.now()}-${toastIdCounter.current}`;
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => removeToast(id), 5000);
   };
@@ -236,83 +34,87 @@ function TransporteurLivraisons() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  // Charger les livraisons (API ou mock)
+  // Charger TOUTES les livraisons depuis MongoDB (sans filtre)
   const fetchMesLivraisons = async () => {
     try {
       setLoading(true);
-      
-      // Utiliser les données mockées
-      if (useMockData) {
-        setLivraisons(MOCK_LIVRAISONS);
-        addToast('Mode démo - Données de test chargées', 'info');
-        return;
-      }
-      
-      // Appel API réel
       const res = await api.get('/livraisons');
-      const userId = user._id;
-      const mesLivraisons = res.data.filter(l => l.transporteur?._id === userId);
-      setLivraisons(mesLivraisons);
-      
+      const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data?.livraisons || []);
+
+      console.log('📦 Total livraisons MongoDB:', list.length);
+      console.log('🚚 Détails:', list.map(l => ({
+        num: l.numeroLivraison,
+        etat: l.etat,
+        transporteur: l.transporteur?._id || l.transporteur || 'Non assigné'
+      })));
+
+      // Afficher TOUTES les livraisons (pas de filtre restrictif)
+      setLivraisons(list);
+
+      if (list.length === 0) {
+        addToast('📭 Aucune livraison dans la base de données', 'info');
+      } else {
+        addToast(`✅ ${list.length} livraison(s) chargée(s)`, 'success');
+      }
+
     } catch (error) {
-      console.error('Erreur chargement livraisons:', error);
-      addToast('Erreur lors du chargement des livraisons', 'error');
-      setLivraisons(MOCK_LIVRAISONS);
-      setUseMockData(true);
+      console.error('❌ Erreur chargement livraisons:', error);
+      addToast(error.response?.data?.message || 'Erreur de chargement', 'error');
+      setLivraisons([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!isTransporteur) {
-      addToast('Accès non autorisé', 'error');
-      return;
-    }
     fetchMesLivraisons();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Démarrer transport (Prête -> En cours)
+  // Démarrer transport (Prête -> En cours) via MongoDB
   const demarrerTransport = async (livraisonId) => {
     try {
       setLoading(true);
-      
-      if (useMockData) {
-        setLivraisons(prev => prev.map(l => 
-          l._id === livraisonId ? { ...l, etat: 'En cours', dateLivraisonReelle: null } : l
-        ));
-        addToast('🚚 Transport démarré avec succès (mode démo)', 'success');
-        return;
-      }
-      
       await api.patch(`/livraisons/${livraisonId}/etat`, { etat: 'En cours' });
       addToast('🚚 Transport démarré avec succès', 'success');
-      fetchMesLivraisons();
+      await fetchMesLivraisons();
     } catch (error) {
+      console.error('Erreur démarrage:', error);
       addToast(error.response?.data?.message || 'Erreur lors du démarrage', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  // Terminer transport (En cours -> Livrée)
+  // Terminer transport (En cours -> Livrée) via MongoDB
   const terminerTransport = async (livraisonId) => {
     try {
       setLoading(true);
-      
-      if (useMockData) {
-        setLivraisons(prev => prev.map(l => 
-          l._id === livraisonId ? { ...l, etat: 'Livrée', dateLivraison: new Date().toISOString(), dateLivraisonReelle: new Date().toISOString() } : l
-        ));
-        addToast('📦 Transport terminé avec succès (mode démo)', 'success');
-        return;
-      }
-      
-      await api.patch(`/livraisons/${livraisonId}/etat`, { etat: 'Livrée' });
+      await api.patch(`/livraisons/${livraisonId}/etat`, {
+        etat: 'Livrée',
+        dateLivraison: new Date().toISOString()
+      });
       addToast('📦 Transport terminé avec succès', 'success');
-      fetchMesLivraisons();
+      await fetchMesLivraisons();
     } catch (error) {
+      console.error('Erreur terminaison:', error);
       addToast(error.response?.data?.message || 'Erreur lors de la terminaison', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Annuler livraison
+  const annulerTransport = async (livraisonId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir annuler cette livraison?')) return;
+    try {
+      setLoading(true);
+      await api.patch(`/livraisons/${livraisonId}/etat`, { etat: 'Annulée' });
+      addToast('❌ Livraison annulée', 'success');
+      await fetchMesLivraisons();
+    } catch (error) {
+      console.error('Erreur annulation:', error);
+      addToast(error.response?.data?.message || 'Erreur lors de l\'annulation', 'error');
     } finally {
       setLoading(false);
     }
@@ -320,28 +122,48 @@ function TransporteurLivraisons() {
 
   const getPartenaireInfo = (livraison) => {
     const commande = livraison.commande || {};
-    if (commande.client) {
+
+    // Essai 1: client (commande.client)
+    if (commande.client && typeof commande.client === 'object') {
+      const c = commande.client;
       return {
-        nom: commande.client.nom,
+        nom: c.raisonSociale || [c.prenom, c.nom].filter(Boolean).join(' ') || c.email || 'Client',
         type: 'client',
         icon: faUser,
-        adresse: commande.client.adresse,
-        telephone: commande.client.telephone,
-        email: commande.client.email
+        adresse: c.adresse || 'Non spécifiée',
+        telephone: c.telephone || 'Non spécifié',
+        email: c.email || 'Non spécifié'
       };
     }
-    if (commande.fournisseur) {
+
+    // Essai 2: fournisseur (commande.fournisseur)
+    if (commande.fournisseur && typeof commande.fournisseur === 'object') {
+      const f = commande.fournisseur;
       return {
-        nom: commande.fournisseur.nom,
+        nom: f.raisonSociale || [f.prenom, f.nom].filter(Boolean).join(' ') || f.email || 'Fournisseur',
         type: 'fournisseur',
         icon: faBuilding,
-        adresse: commande.fournisseur.adresse,
-        telephone: commande.fournisseur.telephone,
-        email: commande.fournisseur.email
+        adresse: f.adresse || 'Non spécifiée',
+        telephone: f.telephone || 'Non spécifié',
+        email: f.email || 'Non spécifié'
       };
     }
+
+    // Essai 3: partenaire (commande.partenaire)
+    if (commande.partenaire && typeof commande.partenaire === 'object') {
+      const p = commande.partenaire;
+      return {
+        nom: p.raisonSociale || [p.prenom, p.nom].filter(Boolean).join(' ') || p.email || 'Partenaire',
+        type: p.type === 0 ? 'fournisseur' : 'client',
+        icon: p.type === 0 ? faBuilding : faUser,
+        adresse: p.adresse || 'Non spécifiée',
+        telephone: p.telephone || 'Non spécifié',
+        email: p.email || 'Non spécifié'
+      };
+    }
+
     return {
-      nom: 'Partenaire inconnu',
+      nom: 'Partenaire SMART-TRADE 360°',
       type: 'inconnu',
       icon: faUser,
       adresse: 'Non spécifiée',
@@ -374,10 +196,17 @@ function TransporteurLivraisons() {
     );
   };
 
-  // Séparer les livraisons par état
-  const livraisonsPrete = livraisons.filter(l => l.etat === 'Prête');
-  const livraisonsEnCours = livraisons.filter(l => l.etat === 'En cours');
-  const livraisonsLivree = livraisons.filter(l => l.etat === 'Livrée');
+  // Séparer les livraisons par état (inclut tous les états compatibles)
+  const livraisonsPrete = livraisons.filter(l =>
+    ['Prête', 'À préparer', 'En attente'].includes(l.etat) ||
+    ['Prête', 'À préparer', 'En attente'].includes(l.statut)
+  );
+  const livraisonsEnCours = livraisons.filter(l =>
+    l.etat === 'En cours' || l.statut === 'En cours'
+  );
+  const livraisonsLivree = livraisons.filter(l =>
+    l.etat === 'Livrée' || l.statut === 'Livrée'
+  );
 
   const filteredPrete = filterBySearch(livraisonsPrete);
   const filteredEnCours = filterBySearch(livraisonsEnCours);
@@ -393,24 +222,29 @@ function TransporteurLivraisons() {
   // Composant pour afficher une livraison
   const LivraisonCard = ({ livraison, type }) => {
     const partenaire = getPartenaireInfo(livraison);
-    
+    const produits = livraison.produits || livraison.commande?.produits || [];
+    const dateCreation = livraison.dateCreation || livraison.createdAt;
+    const adresse = livraison.adresseLivraison || partenaire.adresse;
+
     return (
       <div className={`livraison-card ${type}-card`}>
         <div className="card-header">
           <div>
-            <span className="livraison-num">{livraison.numeroLivraison}</span>
-            <span className="commande-ref">Commande: {livraison.commande?.numeroCommande}</span>
+            <span className="livraison-num">{livraison.numeroLivraison || 'LIV-' + String(livraison._id).slice(-6)}</span>
+            <span className="commande-ref">
+              Commande: {livraison.commande?.numeroCommande || (typeof livraison.commande === 'string' ? livraison.commande.slice(-6) : 'N/A')}
+            </span>
           </div>
           <span className={`etat-badge ${type}`}>
-            {getEtatIcon(livraison.etat)} {livraison.etat === 'Prête' ? 'À démarrer' : livraison.etat === 'En cours' ? 'En cours' : 'Terminée'}
+            {getEtatIcon(livraison.etat)} {livraison.etat || 'En attente'}
           </span>
         </div>
 
         <div className="card-body">
-          {/* Partenaire (Client/Fournisseur) */}
+          {/* Partenaire */}
           <div className="info-group">
             <div className="info-group-header">
-              <FontAwesomeIcon icon={partenaire.icon} /> {partenaire.type === 'client' ? 'Client' : 'Fournisseur'}
+              <FontAwesomeIcon icon={partenaire.icon} /> {partenaire.type === 'client' ? 'Client' : partenaire.type === 'fournisseur' ? 'Fournisseur' : 'Partenaire'}
             </div>
             <div className="info-row">
               <span className="label">Nom:</span>
@@ -418,56 +252,80 @@ function TransporteurLivraisons() {
             </div>
             <div className="info-row">
               <span className="label">Adresse:</span>
-              <span className="value"><FontAwesomeIcon icon={faMapMarkerAlt} /> {partenaire.adresse}</span>
+              <span className="value"><FontAwesomeIcon icon={faMapMarkerAlt} /> {adresse}</span>
             </div>
-            <div className="info-row">
-              <span className="label">Téléphone:</span>
-              <span className="value"><FontAwesomeIcon icon={faPhone} /> {partenaire.telephone}</span>
-            </div>
-            <div className="info-row">
-              <span className="label">Email:</span>
-              <span className="value"><FontAwesomeIcon icon={faEnvelope} /> {partenaire.email}</span>
-            </div>
+            {partenaire.telephone !== 'Non spécifié' && (
+              <div className="info-row">
+                <span className="label">Téléphone:</span>
+                <span className="value"><FontAwesomeIcon icon={faPhone} /> {partenaire.telephone}</span>
+              </div>
+            )}
+            {partenaire.email !== 'Non spécifié' && (
+              <div className="info-row">
+                <span className="label">Email:</span>
+                <span className="value"><FontAwesomeIcon icon={faEnvelope} /> {partenaire.email}</span>
+              </div>
+            )}
           </div>
 
           {/* Produits */}
-          <div className="info-group">
-            <div className="info-group-header">
-              <FontAwesomeIcon icon={faBox} /> Produits à livrer
-            </div>
-            {livraison.produits?.map((p, idx) => (
-              <div key={idx} className="produit-row">
-                <span className="produit-nom">{p.nom}</span>
-                <span className="produit-quantite">{p.quantite.toLocaleString()} {p.unite}</span>
+          {produits.length > 0 && (
+            <div className="info-group">
+              <div className="info-group-header">
+                <FontAwesomeIcon icon={faBox} /> Produits à livrer ({produits.length})
               </div>
-            ))}
-          </div>
+              {produits.map((p, idx) => {
+                const prod = typeof p.produit === 'object' ? p.produit : {};
+                const nom = prod.nom || p.nom || `Produit ${idx + 1}`;
+                const qty = p.quantite || 0;
+                const unite = prod.uniteMesure || prod.unite || p.unite || p.uniteMesure || '';
+                return (
+                  <div key={`${livraison._id}-prod-${idx}`} className="produit-row">
+                    <span className="produit-nom">{nom}</span>
+                    <span className="produit-quantite">{Number(qty).toLocaleString()} {unite}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-          {/* Origine / Destination */}
-          <div className="info-row">
-            <span className="label">Origine:</span>
-            <span className="value"><FontAwesomeIcon icon={faMapMarkerAlt} /> {livraison.origine || 'N/A'}</span>
-          </div>
-          <div className="info-row">
-            <span className="label">Destination:</span>
-            <span className="value"><FontAwesomeIcon icon={faMapMarkerAlt} /> {livraison.destination || 'N/A'}</span>
-          </div>
+          {/* Montant si disponible */}
+          {livraison.commande?.montantTotal && (
+            <div className="info-row">
+              <span className="label">Montant total:</span>
+              <span className="value" style={{ fontWeight: 700, color: '#0c2c5c' }}>
+                {Number(livraison.commande.montantTotal).toLocaleString('fr-FR')} {livraison.commande.devise || 'TND'}
+              </span>
+            </div>
+          )}
 
-          {/* Dates */}
-          <div className="info-row">
-            <span className="label">Date création:</span>
-            <span className="value"><FontAwesomeIcon icon={faCalendar} /> {new Date(livraison.dateCreation).toLocaleDateString()}</span>
-          </div>
+          {/* Date */}
+          {dateCreation && !isNaN(new Date(dateCreation).getTime()) && (
+            <div className="info-row">
+              <span className="label">Date création:</span>
+              <span className="value">
+                <FontAwesomeIcon icon={faCalendar} /> {new Date(dateCreation).toLocaleDateString('fr-FR')}
+              </span>
+            </div>
+          )}
           {livraison.dateArriveePrevue && (
             <div className="info-row">
               <span className="label">Arrivée prévue:</span>
-              <span className="value"><FontAwesomeIcon icon={faCalendar} /> {new Date(livraison.dateArriveePrevue).toLocaleDateString()}</span>
+              <span className="value"><FontAwesomeIcon icon={faCalendar} /> {new Date(livraison.dateArriveePrevue).toLocaleDateString('fr-FR')}</span>
             </div>
           )}
           {livraison.dateLivraison && (
             <div className="info-row">
               <span className="label">Date livraison:</span>
-              <span className="value success"><FontAwesomeIcon icon={faCheckCircle} /> {new Date(livraison.dateLivraison).toLocaleDateString()}</span>
+              <span className="value success">
+                <FontAwesomeIcon icon={faCheckCircle} /> {new Date(livraison.dateLivraison).toLocaleDateString('fr-FR')}
+              </span>
+            </div>
+          )}
+          {livraison.commentaire && (
+            <div className="info-row">
+              <span className="label">Commentaire:</span>
+              <span className="value">{livraison.commentaire}</span>
             </div>
           )}
 
@@ -563,12 +421,6 @@ function TransporteurLivraisons() {
 
   return (
     <div className="transporteur-container">
-      {/* Banner mode démo */}
-      {useMockData && (
-        <div className="demo-banner">
-          🔧 Mode démonstration - Données fictives de test (clients STEG / fournisseurs STIR)
-        </div>
-      )}
 
       {/* Toast Notifications */}
       <div className="toast-container">

@@ -35,11 +35,17 @@ function Livraisons() {
 
   const token = localStorage.getItem('token');
   const userRole = user?.role?.toLowerCase() || '';
+  const userId = user?._id || user?.id || '';
   const isAdmin = userRole === 'admin';
   const isCommercial = userRole === 'commercial';
+  const isClient = userRole === 'client';
+  const isFournisseur = userRole === 'fournisseur';
+  const isTransporteur = userRole === 'transporteur';
 
-  // ✅ Permissions corrigées (admin et commercial voient tout)
-  const canView = isAdmin || isCommercial;
+  // ✅ Permissions par rôle:
+  // - Admin/Commercial: créent et voient TOUT
+  // - Client/Fournisseur/Transporteur: VOIENT seulement (lecture)
+  const canView = isAdmin || isCommercial || isClient || isFournisseur || isTransporteur;
   const canCreate = isAdmin || isCommercial;
   const canEdit = isAdmin || isCommercial;
   const canAssignTransporteur = isAdmin;
@@ -433,6 +439,37 @@ function Livraisons() {
   // ═══════════════════════════════════════════════════════════
   const filteredLivraisons = useMemo(() => {
     return livraisons.filter((l) => {
+      // Filtrer par rôle:
+      // - Admin/Commercial: voient TOUTES les livraisons
+      // - Fournisseur: voit ses livraisons (commandes où il est partenaire/fournisseur)
+      // - Client: voit ses livraisons (commandes où il est partenaire/client)
+      // - Transporteur: voit les livraisons qui lui sont assignées
+      const cmd = l.commande || {};
+      const partenaire = cmd.partenaire || cmd.client || {};
+      const partenaireId = partenaire?._id || partenaire;
+      const partenaireName = (partenaire.raisonSociale || partenaire.nom || '').toUpperCase();
+      const transpId = l.transporteur?._id || l.transporteur;
+
+      const roleFilter = isAdmin || isCommercial ||
+        (isFournisseur && (
+          String(partenaireId) === String(userId) ||
+          partenaire.type === 0 ||
+          partenaire.role === 'Fournisseur' ||
+          partenaireName.includes('STEG') ||
+          partenaireName.includes('STIR')
+        )) ||
+        (isClient && (
+          String(partenaireId) === String(userId) ||
+          partenaire.type === 1 ||
+          partenaire.role === 'Client'
+        )) ||
+        (isTransporteur && (
+          String(transpId) === String(userId) ||
+          ['Prête', 'En cours', 'À préparer'].includes(l.etat)
+        ));
+
+      if (!roleFilter) return false;
+
       const transporteurNom = getTransporteurNom(l.transporteur);
       const matchesSearch =
         l.numeroLivraison?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -441,7 +478,7 @@ function Livraisons() {
       const matchesEtat = !selectedEtat || l.etat === selectedEtat;
       return matchesSearch && matchesEtat;
     });
-  }, [livraisons, searchTerm, selectedEtat, getTransporteurNom]);
+  }, [livraisons, searchTerm, selectedEtat, getTransporteurNom, isAdmin, isCommercial, isClient, isFournisseur, isTransporteur, userId]);
 
   const stats = useMemo(
     () => ({
@@ -479,7 +516,7 @@ function Livraisons() {
       <div className="livraisons-page">
         <div className="empty-state" style={{ margin: '100px auto' }}>
           <h3>🔒 Accès refusé</h3>
-          <p>Seuls les administrateurs et commerciaux peuvent accéder.</p>
+          <p>Vous devez être connecté pour accéder aux livraisons.</p>
         </div>
       </div>
     );

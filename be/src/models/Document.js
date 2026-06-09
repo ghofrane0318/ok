@@ -1,11 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const documentSchema = new mongoose.Schema({
-  type: { type: String, enum: ['Facture', 'BonLivraison', 'Contrat', 'CertificatDouanier'], required: true },
-  referenceId: { type: mongoose.Schema.Types.ObjectId, required: true, refPath: 'type' },
-  filePath: { type: String, required: true },
-  dateGeneration: { type: Date, default: Date.now },
-  generePar: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  titre: { type: String, required: true },
+  type: {
+    type: String,
+    enum: ['Contrat', 'Facture', 'Bon de livraison', 'Attestation'],
+    required: true
+  },
+  reference: { type: String },
+  fichier: { type: String },
+  dateCreation: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Document', documentSchema);
+module.exports = mongoose.models.Document || mongoose.model('Document', documentSchema);

@@ -1,74 +1,178 @@
+// backend/src/controllers/livraisonController.js - Version complète et unifiée
 const Livraison = require('../models/Livraison');
 const Commande = require('../models/Commande');
 const Tiers = require('../models/Tiers');
 const User = require('../models/User');
 const PDFDocument = require('pdfkit');
-const HistoriqueController = require('./historiqueController');
+
+// HistoriqueController (optionnel)
+let HistoriqueController = null;
+try {
+  HistoriqueController = require('./historiqueController');
+} catch (err) {
+  console.log('⚠️ HistoriqueController non trouvé');
+  HistoriqueController = {
+    addHistorique: async () => {}
+  };
+}
+
+// ==================== CONSTANTES ====================
+
+const ETAT_TO_STATUT = {
+  'À préparer': 'En attente',
+  'Prête': 'Prête',
+  'En cours': 'En cours',
+  'Livrée': 'Livrée',
+  'Annulée': 'Annulée'
+};
+
+const STATUT_TO_ETAT = {
+  'En attente': 'À préparer',
+  'Prête': 'Prête',
+  'En cours': 'En cours',
+  'Livrée': 'Livrée',
+  'Annulée': 'Annulée'
+};
 
 // ==================== LISTE DES LIVRAISONS ====================
+
+// GET /api/livraisons
 exports.getLivraisons = async (req, res) => {
   try {
-    let query = {};
-    const userRole = req.user.role;
-    const userId = req.user.id;
-    
-    // Transporteur : ne voit que ses propres livraisons
-    if (userRole === 'Transporteur') {
-      query.transporteur = userId;
-    }
-    // Admin et Commercial : query = {} → toutes les livraisons
-    // (inclut les commandes clients, export, vente, fournisseurs)
-    
-    const livraisons = await Livraison.find(query)
-      .populate({
-        path: 'commande',
-        select: 'numeroCommande montantTotal dateCreation produits',
-        populate: {
-          path: 'produits.sousProduit',
-          model: 'SousProduit',
-          select: 'nom uniteMesure prixUnitaire'
-        }
+    const livraisons = await Livraison.find({}).sort({ _id: -1 }).lean();
+
+    const populated = await Promise.all(
+      livraisons.map(async (liv) => {
+        try {
+          if (liv.commande) {
+            const cmd = await Commande.findById(liv.commande)
+              .populate('client', 'nom prenom email raisonSociale')
+              .lean();
+            liv.commande = cmd || { _id: liv.commande };
+          }
+        } catch (_) {}
+
+        try {
+          if (liv.transporteur) {
+            const t = await User.findById(liv.transporteur)
+              .select('nom prenom email raisonSociale code')
+              .lean();
+            liv.transporteur = t || { _id: liv.transporteur };
+          }
+        } catch (_) {}
+
+        return liv;
       })
-      .populate('transporteur', 'nom email telephone adresse raisonSociale')
-      .sort({ dateCreation: -1 });
-    
-    res.json(livraisons);
+    );
+
+    res.json({ success: true, data: populated });
   } catch (err) {
-    console.error('Erreur getLivraisons:', err);
-    res.status(500).json({ message: err.message });
+    console.error('GET /api/livraisons error:', err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ==================== CRÉER LIVRAISON DEPUIS COMMANDE ====================
+// GET /api/livraisons/:id/detail
+exports.getLivraisonDetail = async (req, res) => {
+  try {
+    const livraison = await Livraison.findById(req.params.id)
+      .populate({
+        path: 'commande',
+        populate: [
+          { path: 'client', select: 'nom prenom email raisonSociale' },
+          { path: 'produits.produit', select: 'nom prixUnitaire uniteMesure' },
+          { path: 'produits.sousProduit', select: 'nom uniteMesure prixUnitaire' }
+        ]
+      })
+      .populate('transporteur', 'nom prenom email raisonSociale code telephone adresse');
+
+    if (!livraison) {
+      return res.status(404).json({ success: false, message: 'Livraison non trouvée' });
+    }
+    res.json({ success: true, data: livraison });
+  } catch (err) {
+    console.error('Erreur getLivraisonDetail:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ==================== CRÉATION DE LIVRAISON ====================
+
+// POST /api/livraisons
+exports.createLivraison = async (req, res) => {
+  try {
+    const count = await Livraison.countDocuments();
+    const numeroLivraison = `LIV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+    const { commande, transporteur, adresseLivraison, dateLivraison } = req.body;
+
+    const livraison = await Livraison.create({
+      numeroLivraison,
+      ...(commande && { commande }),
+      ...(transporteur && { transporteur }),
+      ...(adresseLivraison && { adresseLivraison }),
+      ...(dateLivraison && { dateLivraison }),
+      dateCreation: new Date(),
+      dateDerniereMiseAJour: new Date()
+    });
+
+    const populated = await livraison.populate('commande');
+    
+    // Ajouter à l'historique
+    await HistoriqueController.addHistorique({
+      entityType: "Livraison",
+      entityId: livraison._id,
+      action: "Création",
+      details: `Livraison #${numeroLivraison} créée`,
+      utilisateur: req.user?._id,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({ success: true, data: populated });
+  } catch (err) {
+    console.error('POST /api/livraisons error:', err.message);
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/livraisons/commande/:commandeId - Créer livraison depuis commande
 exports.createLivraisonFromCommande = async (req, res) => {
   try {
     if (req.user.role !== 'Commercial' && req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Accès non autorisé. Seuls les commerciaux et administrateurs peuvent créer des livraisons.' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Accès non autorisé. Seuls les commerciaux et administrateurs peuvent créer des livraisons.' 
+      });
     }
     
     const commande = await Commande.findById(req.params.commandeId)
       .populate('produits.sousProduit', 'nom uniteMesure');
     
     if (!commande) {
-      return res.status(404).json({ message: 'Commande non trouvée' });
+      return res.status(404).json({ success: false, message: 'Commande non trouvée' });
     }
     
-    if (commande.statut !== 'Validée') {
-      return res.status(400).json({ message: 'La commande doit être validée pour créer une livraison' });
+    if (commande.statut !== 'Validée' && commande.statut !== 'Confirmée') {
+      return res.status(400).json({ 
+        success: false,
+        message: 'La commande doit être validée pour créer une livraison' 
+      });
     }
     
     const existingLivraison = await Livraison.findOne({ commande: commande._id });
     if (existingLivraison) {
-      return res.status(400).json({ message: 'Une livraison existe déjà pour cette commande' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Une livraison existe déjà pour cette commande' 
+      });
     }
     
-    const numeroLivraison = 'LIV-' + Date.now();
+    const count = await Livraison.countDocuments();
+    const numeroLivraison = `LIV-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
     
     const livraison = await Livraison.create({
-      numeroLivraison: numeroLivraison,
+      numeroLivraison,
       commande: commande._id,
       etat: 'À préparer',
-      dateDepot: new Date(),
       dateCreation: new Date(),
       dateDerniereMiseAJour: new Date()
     });
@@ -86,7 +190,7 @@ exports.createLivraisonFromCommande = async (req, res) => {
       .populate('commande', 'numeroCommande montantTotal dateCreation')
       .populate('transporteur', 'nom raisonSociale email');
     
-    res.status(201).json(populatedLivraison);
+    res.status(201).json({ success: true, data: populatedLivraison });
   } catch (err) {
     console.error('Erreur createLivraisonFromCommande:', err);
     await HistoriqueController.addHistorique({
@@ -96,11 +200,55 @@ exports.createLivraisonFromCommande = async (req, res) => {
       utilisateur: req.user?._id,
       ipAddress: req.ip
     });
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-// ==================== METTRE À JOUR ÉTAT LIVRAISON ====================
+// ==================== MISE À JOUR DES LIVRAISONS ====================
+
+// PATCH /api/livraisons/:id
+exports.updateLivraison = async (req, res) => {
+  try {
+    const update = { ...req.body };
+    update.dateDerniereMiseAJour = new Date();
+
+    // Synchronisation entre etat et statut
+    if (update.etat && !update.statut) {
+      update.statut = ETAT_TO_STATUT[update.etat] || update.etat;
+    }
+    if (update.statut && !update.etat) {
+      update.etat = STATUT_TO_ETAT[update.statut] || update.statut;
+    }
+
+    const livraison = await Livraison.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true, runValidators: false }
+    )
+      .populate('commande')
+      .populate('transporteur', 'nom prenom email raisonSociale code');
+
+    if (!livraison) {
+      return res.status(404).json({ success: false, message: 'Livraison non trouvée' });
+    }
+
+    await HistoriqueController.addHistorique({
+      entityType: "Livraison",
+      entityId: livraison._id,
+      action: "Modification",
+      details: `Livraison #${livraison.numeroLivraison} mise à jour`,
+      utilisateur: req.user?._id,
+      ipAddress: req.ip,
+    });
+
+    res.json({ success: true, data: livraison });
+  } catch (err) {
+    console.error('Erreur updateLivraison:', err);
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+// PATCH /api/livraisons/:id/etat - Mettre à jour l'état uniquement
 exports.updateEtatLivraison = async (req, res) => {
   try {
     const { etat, commentaire } = req.body;
@@ -110,7 +258,7 @@ exports.updateEtatLivraison = async (req, res) => {
       .populate('commande', 'numeroCommande');
     
     if (!livraison) {
-      return res.status(404).json({ message: 'Livraison non trouvée' });
+      return res.status(404).json({ success: false, message: 'Livraison non trouvée' });
     }
     
     const ancienEtat = livraison.etat;
@@ -125,19 +273,27 @@ exports.updateEtatLivraison = async (req, res) => {
     
     const transition = transitionsValides[livraison.etat];
     if (!transition || !transition.next.includes(etat)) {
-      return res.status(400).json({ message: `Transition invalide de ${livraison.etat} vers ${etat}` });
+      return res.status(400).json({ 
+        success: false,
+        message: `Transition invalide de ${livraison.etat} vers ${etat}` 
+      });
     }
     
     if (!transition.roles.includes(userRole)) {
-      return res.status(403).json({ message: `Seuls ${transition.roles.join(', ')} peuvent changer l'état de ${livraison.etat} vers ${etat}` });
+      return res.status(403).json({ 
+        success: false,
+        message: `Seuls ${transition.roles.join(', ')} peuvent changer l'état de ${livraison.etat} vers ${etat}` 
+      });
     }
     
     livraison.etat = etat;
+    livraison.statut = ETAT_TO_STATUT[etat] || etat;
+    
     if (commentaire) livraison.commentaire = commentaire;
-    livraison.dateDerniereMiseAJour = Date.now();
+    livraison.dateDerniereMiseAJour = new Date();
     
     if (etat === 'Livrée') {
-      livraison.dateLivraison = Date.now();
+      livraison.dateLivraison = new Date();
     }
     
     await livraison.save();
@@ -160,7 +316,7 @@ exports.updateEtatLivraison = async (req, res) => {
       .populate('commande', 'numeroCommande montantTotal')
       .populate('transporteur', 'nom raisonSociale email');
     
-    res.json(populatedLivraison);
+    res.json({ success: true, data: populatedLivraison });
   } catch (err) {
     console.error('Erreur updateEtatLivraison:', err);
     await HistoriqueController.addHistorique({
@@ -171,37 +327,51 @@ exports.updateEtatLivraison = async (req, res) => {
       utilisateur: req.user?._id,
       ipAddress: req.ip
     });
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-// ==================== ASSIGNER TRANSPORTEUR ====================
+// ==================== ASSIGNATION TRANSPORTEUR ====================
+
+// PUT /api/livraisons/:id/transporteur
 exports.assignTransporteur = async (req, res) => {
   try {
     if (req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Accès non autorisé. Seul l\'administrateur peut assigner un transporteur.' });
+      return res.status(403).json({ 
+        success: false,
+        message: 'Accès non autorisé. Seul l\'administrateur peut assigner un transporteur.' 
+      });
     }
     
     const { transporteurId } = req.body;
     if (!transporteurId) {
-      return res.status(400).json({ message: 'Veuillez sélectionner un transporteur' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Veuillez sélectionner un transporteur' 
+      });
     }
     
     const transporteur = await User.findById(transporteurId);
     if (!transporteur || transporteur.role !== 'Transporteur') {
-      return res.status(404).json({ message: 'Transporteur non trouvé' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Transporteur non trouvé' 
+      });
     }
     
     const livraison = await Livraison.findById(req.params.id);
     if (!livraison) {
-      return res.status(404).json({ message: 'Livraison non trouvée' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Livraison non trouvée' 
+      });
     }
     
     const ancienTransporteur = livraison.transporteur;
     
     const livraisonUpdated = await Livraison.findByIdAndUpdate(
       req.params.id,
-      { transporteur: transporteurId, dateDerniereMiseAJour: Date.now() },
+      { transporteur: transporteurId, dateDerniereMiseAJour: new Date() },
       { new: true }
     )
       .populate('commande', 'numeroCommande montantTotal')
@@ -222,7 +392,7 @@ exports.assignTransporteur = async (req, res) => {
       ipAddress: req.ip,
     });
     
-    res.json(livraisonUpdated);
+    res.json({ success: true, data: livraisonUpdated });
   } catch (err) {
     console.error('Erreur assignTransporteur:', err);
     await HistoriqueController.addHistorique({
@@ -233,18 +403,20 @@ exports.assignTransporteur = async (req, res) => {
       utilisateur: req.user?._id,
       ipAddress: req.ip
     });
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
-// ==================== LISTE DES TRANSPORTEURS (SANS ERREUR 500) ====================
+// ==================== LISTE DES TRANSPORTEURS ====================
+
+// GET /api/livraisons/transporteurs
 exports.getTransporteurs = async (req, res) => {
   try {
     let transporteurs = [];
     
     // Tentative avec le modèle Tiers
     try {
-      transporteurs = await Tiers.find({ role: 'Transporteur' })
+      transporteurs = await Tiers.find({ type: 'Transporteur', actif: true })
         .select('_id nom raisonSociale email telephone adresse')
         .lean();
     } catch (err) {
@@ -254,8 +426,8 @@ exports.getTransporteurs = async (req, res) => {
     // Fallback avec User
     if (!transporteurs || transporteurs.length === 0) {
       try {
-        transporteurs = await User.find({ role: 'Transporteur' })
-          .select('_id nom raisonSociale email telephone adresse')
+        transporteurs = await User.find({ role: 'Transporteur', actif: true })
+          .select('_id nom raisonSociale email telephone adresse code')
           .lean();
       } catch (err) {
         console.warn('Modèle User indisponible:', err.message);
@@ -263,14 +435,16 @@ exports.getTransporteurs = async (req, res) => {
     }
     
     // Retourne toujours un tableau (vide si aucun transporteur)
-    res.json(transporteurs || []);
+    res.json({ success: true, data: transporteurs || [], count: transporteurs?.length || 0 });
   } catch (err) {
     console.error('Erreur getTransporteurs:', err);
-    res.json([]); // Jamais d'erreur 500
+    res.json({ success: true, data: [], count: 0 });
   }
 };
 
-// ==================== GÉNÉRER BON DE LIVRAISON PDF ====================
+// ==================== GÉNÉRATION PDF ====================
+
+// GET /api/livraisons/:id/pdf
 exports.generateBonLivraisonPDF = async (req, res) => {
   try {
     const livraison = await Livraison.findById(req.params.id)
@@ -286,21 +460,21 @@ exports.generateBonLivraisonPDF = async (req, res) => {
       .populate('transporteur', 'nom raisonSociale email telephone adresse');
     
     if (!livraison) {
-      return res.status(404).json({ message: 'Livraison non trouvée' });
+      return res.status(404).json({ success: false, message: 'Livraison non trouvée' });
     }
     
     const userRole = req.user.role;
     const userId = req.user.id;
     
     if (userRole === 'Transporteur' && livraison.transporteur?._id?.toString() !== userId) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
+      return res.status(403).json({ success: false, message: 'Accès non autorisé' });
     }
     
     await HistoriqueController.addHistorique({
       entityType: "Livraison",
       entityId: livraison._id,
-      action: "Modification",
-      details: `Export PDF du bon de livraison #${livraison.numeroLivraison} par ${req.user.nom || req.user.email}`,
+      action: "Export PDF",
+      details: `Export PDF du bon de livraison #${livraison.numeroLivraison}`,
       utilisateur: req.user._id,
       ipAddress: req.ip,
     });
@@ -318,7 +492,7 @@ exports.generateBonLivraisonPDF = async (req, res) => {
     });
     doc.on('error', (err) => {
       console.error('Erreur PDF:', err);
-      res.status(500).json({ message: err.message });
+      res.status(500).json({ success: false, message: err.message });
     });
     
     // En-tête
@@ -331,9 +505,7 @@ exports.generateBonLivraisonPDF = async (req, res) => {
     doc.fontSize(14).font('Helvetica-Bold').text('Informations de livraison', { underline: true }).moveDown(0.5);
     doc.fontSize(10).font('Helvetica')
       .text(`État: ${exports.getEtatText(livraison.etat)}`)
-      .text(`Date de dépôt: ${new Date(livraison.dateDepot).toLocaleDateString('fr-FR')}`)
       .text(`Date de création: ${new Date(livraison.dateCreation).toLocaleDateString('fr-FR')}`);
-    if (livraison.dateArriveePrevue) doc.text(`Date d'arrivée prévue: ${new Date(livraison.dateArriveePrevue).toLocaleDateString('fr-FR')}`);
     if (livraison.dateLivraison) doc.text(`Date de livraison: ${new Date(livraison.dateLivraison).toLocaleDateString('fr-FR')}`);
     if (livraison.commentaire) doc.text(`Commentaire: ${livraison.commentaire}`);
     doc.moveDown();
@@ -350,50 +522,58 @@ exports.generateBonLivraisonPDF = async (req, res) => {
     }
     
     // Détails commande
-    doc.fontSize(14).font('Helvetica-Bold').text('Détails de la commande', { underline: true }).moveDown(0.5);
-    doc.fontSize(10).font('Helvetica')
-      .text(`N° Commande: ${livraison.commande?.numeroCommande || '-'}`)
-      .text(`Date commande: ${livraison.commande?.dateCreation ? new Date(livraison.commande.dateCreation).toLocaleDateString('fr-FR') : '-'}`)
-      .moveDown();
-    
-    // Produits
-    doc.fontSize(12).font('Helvetica-Bold').text('Produits', { underline: true }).moveDown(0.5);
-    
-    const startY = doc.y;
-    const productX = 50;
-    const qtyX = 250;
-    const priceX = 350;
-    const totalX = 450;
-    
-    doc.fontSize(9).font('Helvetica-Bold')
-      .text('Produit', productX, startY)
-      .text('Quantité', qtyX, startY)
-      .text('Prix unitaire', priceX, startY)
-      .text('Total', totalX, startY);
-    
-    let y = startY + 20;
-    let totalGeneral = 0;
-    
-    livraison.commande?.produits?.forEach((produit) => {
-      const nom = produit.sousProduit?.nom || 'Produit';
-      const quantite = produit.quantite;
-      const prixUnitaire = produit.prixUnitaire;
-      const total = quantite * prixUnitaire;
-      totalGeneral += total;
+    if (livraison.commande) {
+      doc.fontSize(14).font('Helvetica-Bold').text('Détails de la commande', { underline: true }).moveDown(0.5);
+      doc.fontSize(10).font('Helvetica')
+        .text(`N° Commande: ${livraison.commande.numeroCommande || '-'}`)
+        .text(`Date commande: ${livraison.commande.dateCreation ? new Date(livraison.commande.dateCreation).toLocaleDateString('fr-FR') : '-'}`)
+        .moveDown();
       
-      doc.font('Helvetica').fontSize(9)
-        .text(nom, productX, y)
-        .text(`${quantite} ${produit.sousProduit?.uniteMesure || ''}`, qtyX, y)
-        .text(`${prixUnitaire.toLocaleString()} TND`, priceX, y)
-        .text(`${total.toLocaleString()} TND`, totalX, y);
-      
-      y += 20;
-    });
-    
-    y += 10;
-    doc.font('Helvetica-Bold').fontSize(11)
-      .text('Total général:', totalX - 80, y)
-      .text(`${totalGeneral.toLocaleString()} TND`, totalX, y);
+      // Produits
+      if (livraison.commande.produits && livraison.commande.produits.length > 0) {
+        doc.fontSize(12).font('Helvetica-Bold').text('Produits', { underline: true }).moveDown(0.5);
+        
+        const startY = doc.y;
+        const productX = 50;
+        const qtyX = 250;
+        const priceX = 350;
+        const totalX = 450;
+        
+        doc.fontSize(9).font('Helvetica-Bold')
+          .text('Produit', productX, startY)
+          .text('Quantité', qtyX, startY)
+          .text('Prix unitaire', priceX, startY)
+          .text('Total', totalX, startY);
+        
+        let y = startY + 20;
+        let totalGeneral = 0;
+        
+        livraison.commande.produits.forEach((produit) => {
+          const nom = produit.sousProduit?.nom || produit.produit?.nom || 'Produit';
+          const quantite = produit.quantite || 0;
+          const prixUnitaire = produit.prixUnitaire || produit.sousProduit?.prixUnitaire || 0;
+          const total = quantite * prixUnitaire;
+          totalGeneral += total;
+          
+          doc.font('Helvetica').fontSize(9)
+            .text(nom.substring(0, 30), productX, y)
+            .text(`${quantite}`, qtyX, y)
+            .text(`${prixUnitaire.toLocaleString()} TND`, priceX, y)
+            .text(`${total.toLocaleString()} TND`, totalX, y);
+          
+          y += 20;
+          if (y > 700) {
+            doc.addPage();
+            y = 50;
+          }
+        });
+        
+        y += 10;
+        doc.font('Helvetica-Bold').fontSize(11)
+          .text('Total général:', totalX - 80, y)
+          .text(`${totalGeneral.toLocaleString()} TND`, totalX, y);
+      }
+    }
     
     doc.fontSize(8).font('Helvetica')
       .text('Document généré le ' + new Date().toLocaleDateString('fr-FR'), 50, 750, { align: 'center' });
@@ -401,20 +581,25 @@ exports.generateBonLivraisonPDF = async (req, res) => {
     doc.end();
   } catch (error) {
     console.error('Erreur generateBonLivraisonPDF:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ==================== SUPPRIMER UNE LIVRAISON ====================
+// ==================== SUPPRESSION ====================
+
+// DELETE /api/livraisons/:id
 exports.deleteLivraison = async (req, res) => {
   try {
     const livraison = await Livraison.findById(req.params.id);
     if (!livraison) {
-      return res.status(404).json({ message: 'Livraison non trouvée' });
+      return res.status(404).json({ success: false, message: 'Livraison non trouvée' });
     }
     
     if (livraison.etat === 'En cours' || livraison.etat === 'Livrée') {
-      return res.status(400).json({ message: 'Impossible de supprimer une livraison en cours ou déjà livrée' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Impossible de supprimer une livraison en cours ou déjà livrée' 
+      });
     }
     
     await HistoriqueController.addHistorique({
@@ -427,14 +612,16 @@ exports.deleteLivraison = async (req, res) => {
     });
     
     await Livraison.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Livraison supprimée avec succès' });
+    res.json({ success: true, message: 'Livraison supprimée avec succès' });
   } catch (err) {
     console.error('Erreur deleteLivraison:', err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ==================== UTILITAIRE : TEXTE D'ÉTAT AVEC ÉMOJI ====================
+// ==================== UTILITAIRES ====================
+
+// Texte d'état avec emoji
 exports.getEtatText = (etat) => {
   const map = {
     'À préparer': '⏳ À préparer',

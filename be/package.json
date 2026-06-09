@@ -4,7 +4,10 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "kill-port": "powershell -Command \"Get-NetTCPConnection -LocalPort 5001 -EA SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -EA SilentlyContinue }; Write-Host 'Port 5001 libéré'\"",
+    "dev:fresh": "npm run kill-port && npm run dev",
+    "start:fresh": "npm run kill-port && npm start"
   },
   "dependencies": {
     "axios": "^1.16.1",

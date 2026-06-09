@@ -1,72 +1,35 @@
-// models/ChatConversation.js
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
 const chatMessageSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    enum: ['user', 'assistant', 'system'],
-    required: true
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  }
-});
+  role: { type: String, enum: ['user', 'assistant'], required: true },
+  content: { type: String, required: true },
+  intent: { type: String, default: null },
+  action: { type: String, default: null },
+  timestamp: { type: Date, default: Date.now }
+}, { _id: false });
 
-const chatConversationSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
-  },
-  title: {
+const chatbotConversationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  userEmail: { type: String, index: true },
+  userRole: {
     type: String,
-    default: 'Nouvelle conversation'
+    enum: ['Admin', 'Commercial', 'Transporteur', 'Fournisseur', 'Client']
   },
+  sessionId: { type: String, required: true, index: true },
+  title: { type: String, default: 'Nouvelle conversation' },
   messages: [chatMessageSchema],
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  totalMessages: { type: Number, default: 0 },
+  lastMessage: { type: String, default: '' },
+  isActive: { type: Boolean, default: true },
+  metadata: {
+    deviceType: { type: String, default: 'web' },
+    userAgent: { type: String, default: '' },
+    locale: { type: String, default: 'fr-TN' }
   }
-});
+}, { timestamps: true });
 
-// Middleware pour mettre à jour updatedAt
-chatConversationSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+chatbotConversationSchema.index({ userId: 1, createdAt: -1 });
+chatbotConversationSchema.index({ sessionId: 1, createdAt: -1 });
 
-// Méthode pour ajouter un message
-chatConversationSchema.methods.addMessage = function(role, content) {
-  this.messages.push({ role, content, timestamp: new Date() });
-  this.updatedAt = Date.now();
-  return this.save();
-};
-
-// Méthode pour obtenir les derniers messages (contexte)
-chatConversationSchema.methods.getContextMessages = function(limit = 10) {
-  return this.messages.slice(-limit).map(msg => ({
-    role: msg.role,
-    content: msg.content
-  }));
-};
-
-// Index pour les recherches
-chatConversationSchema.index({ userId: 1, updatedAt: -1 });
-
-const ChatConversation = mongoose.model('ChatConversation', chatConversationSchema);
-
-export default ChatConversation;
+module.exports = mongoose.models.ChatbotConversation ||
+  mongoose.model('ChatbotConversation', chatbotConversationSchema, 'chatbot_conversations');

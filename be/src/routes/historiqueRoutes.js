@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Historique = require('../models/Historique');
-const { protectRoute, authorize } = require('../middleware/auth');
+const { protectRoute, authorize } = require('../middlewares/authMiddleware');
 
 // GET historique pour admin (tous les historiques)
 router.get('/', protectRoute, authorize('Admin'), async (req, res) => {

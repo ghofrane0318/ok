@@ -1,26 +1,33 @@
 // backend/src/controllers/userController.js - Version complète et unifiée
 const User = require('../models/User');
-const History = require('../models/History');
 const bcrypt = require('bcryptjs');
+
+// Modèle History (si disponible)
+let History = null;
+try {
+  History = require('../models/History');
+} catch (err) {
+  console.log('⚠️ Modèle History non trouvé, journalisation désactivée');
+}
 
 // ==================== FONCTIONS UTILITAIRES ====================
 
 // Journaliser les actions
 const logAction = async (userId, userRole, userEmail, action, entityType, entityId, details, req) => {
+  if (!History) return;
+  
   try {
-    if (History) {
-      await History.create({
-        userId,
-        userRole,
-        userEmail,
-        action,
-        entityType,
-        entityId,
-        details,
-        ipAddress: req?.ip || 'unknown',
-        userAgent: req?.headers?.['user-agent'] || 'unknown'
-      });
-    }
+    await History.create({
+      userId,
+      userRole,
+      userEmail,
+      action,
+      entityType,
+      entityId,
+      details,
+      ipAddress: req?.ip || 'unknown',
+      userAgent: req?.headers?.['user-agent'] || 'unknown'
+    });
   } catch (err) {
     console.error('Erreur journalisation:', err);
   }
@@ -60,17 +67,14 @@ exports.getUsers = async (req, res) => {
     
     let query = {};
     
-    // Filtre par rôle
     if (role) {
       query.role = role;
     }
     
-    // Filtre par statut
     if (actif !== undefined) {
       query.actif = actif === 'true';
     }
     
-    // Recherche par nom ou email
     if (search) {
       query.$or = [
         { nom: { $regex: search, $options: 'i' } },
@@ -186,7 +190,8 @@ exports.getTransporteurs = async (req, res) => {
       adresse: t.adresse,
       role: t.role,
       code: t.code,
-      actif: t.actif
+      actif: t.actif,
+      raisonSociale: t.raisonSociale
     }));
     
     console.log(`✅ ${formattedTransporteurs.length} transporteur(s) trouvé(s)`);
@@ -246,10 +251,20 @@ exports.getCommerciaux = async (req, res) => {
       .select('nom prenom email telephone role actif')
       .sort({ nom: 1 });
     
+    const formattedCommerciaux = commerciaux.map(c => ({
+      id: c._id,
+      nom: c.nom,
+      prenom: c.prenom,
+      email: c.email,
+      telephone: c.telephone,
+      role: c.role,
+      actif: c.actif
+    }));
+    
     res.json({
       success: true,
-      data: commerciaux,
-      count: commerciaux.length
+      data: formattedCommerciaux,
+      count: formattedCommerciaux.length
     });
   } catch (err) {
     console.error('❌ Erreur getCommerciaux:', err);
@@ -267,10 +282,23 @@ exports.getClients = async (req, res) => {
       .select('nom prenom email telephone adresse role actif code raisonSociale')
       .sort({ nom: 1 });
     
+    const formattedClients = clients.map(c => ({
+      id: c._id,
+      nom: c.nom,
+      prenom: c.prenom,
+      email: c.email,
+      telephone: c.telephone,
+      adresse: c.adresse,
+      role: c.role,
+      code: c.code,
+      raisonSociale: c.raisonSociale,
+      actif: c.actif
+    }));
+    
     res.json({
       success: true,
-      data: clients,
-      count: clients.length
+      data: formattedClients,
+      count: formattedClients.length
     });
   } catch (err) {
     console.error('❌ Erreur getClients:', err);
@@ -323,22 +351,35 @@ exports.getProfile = async (req, res) => {
 // ==================== CREATE USER ====================
 exports.createUser = async (req, res) => {
   try {
-    const { 
-      nom, prenom, email, password, motDePasse, 
-      telephone, adresse, role, raisonSociale, code 
-    } = req.body;
+    const body = { ...req.body };
     
-    const userPassword = password || motDePasse;
+    // Synchroniser motDePasse → password
+    if (!body.password && body.motDePasse) {
+      body.password = body.motDePasse;
+    }
+    
+    // Supprimer les champs vides qui pourraient causer des erreurs de validation
+    if (!body.code || body.code.trim() === '') {
+      delete body.code;
+    }
+    if (!body.raisonSociale || body.raisonSociale.trim() === '') {
+      delete body.raisonSociale;
+    }
+    
+    const { 
+      nom, prenom, email, password, 
+      telephone, adresse, role 
+    } = body;
     
     // Validation
-    if (!nom || !email || !userPassword) {
+    if (!nom || !email || !password) {
       return res.status(400).json({ 
         success: false, 
         message: 'Nom, email et mot de passe requis' 
       });
     }
     
-    if (userPassword.length < 6) {
+    if (password.length < 6) {
       return res.status(400).json({ 
         success: false, 
         message: 'Le mot de passe doit contenir au moins 6 caractères' 
@@ -354,19 +395,19 @@ exports.createUser = async (req, res) => {
       });
     }
     
-    // Créer un code unique si non fourni
-    const userCode = code || `USER${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    // Créer un code unique
+    const code = body.code || `USER${Date.now()}${Math.floor(Math.random() * 1000)}`;
     
     const user = await User.create({
       nom,
       prenom,
       email: email.toLowerCase(),
-      password: userPassword,
+      password,
       telephone,
       adresse,
       role: role || 'Client',
-      raisonSociale: raisonSociale || nom,
-      code: userCode,
+      raisonSociale: body.raisonSociale || nom,
+      code,
       actif: true,
       isActive: true
     });
@@ -379,13 +420,26 @@ exports.createUser = async (req, res) => {
     
     console.log(`✅ Utilisateur créé: ${user.email} (${user.role})`);
     
+    const userObj = user.toObject();
+    delete userObj.password;
+    delete userObj.motDePasse;
+    
     res.status(201).json({
       success: true,
       message: 'Utilisateur créé avec succès',
-      data: formatUserResponse(user)
+      data: userObj
     });
   } catch (err) {
     console.error('❌ Erreur createUser:', err);
+    
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern || {})[0] || 'champ';
+      const msg = field === 'email'
+        ? 'Un utilisateur avec cet email existe déjà'
+        : `La valeur du champ "${field}" est déjà utilisée`;
+      return res.status(400).json({ success: false, message: msg });
+    }
+    
     res.status(400).json({ success: false, message: err.message });
   }
 };
@@ -407,6 +461,35 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: 'Cet email est déjà utilisé'
+        });
+      }
+    }
+
+    // 🚨 SÉCURITÉ: Détection tentative de changement de rôle non autorisé
+    if (role && role !== user.role) {
+      const requester = req.user || {};
+      // Seul un Admin peut changer les rôles
+      if (requester.role !== 'Admin') {
+        console.log(`🚨 ALERTE: ${requester.email} (${requester.role}) tente de changer le rôle de ${user.email} vers ${role}`);
+
+        // Notifier Flask pour envoyer email à aziz.hamadi.dev@gmail.com
+        try {
+          const axios = require('axios');
+          const FLASK_URL = process.env.FLASK_URL || 'http://localhost:5002';
+          await axios.post(`${FLASK_URL}/role-change-attempt`, {
+            email: requester.email || user.email,
+            currentRole: requester.role || user.role,
+            targetRole: role,
+            ipAddress: req.ip || req.headers['x-forwarded-for'] || 'Inconnu',
+            userAgent: req.headers['user-agent'] || 'Inconnu'
+          }, { timeout: 3000 }).catch(err => console.error('Flask alert error:', err.message));
+        } catch (e) {
+          console.error('Erreur notification Flask:', e.message);
+        }
+
+        return res.status(403).json({
+          success: false,
+          message: '🚨 Accès refusé. Tentative de piratage détectée et signalée.'
         });
       }
     }
@@ -465,7 +548,6 @@ exports.updateProfile = async (req, res) => {
     
     await user.save();
     
-    // Journaliser
     await logAction(
       user._id, user.role, user.email, 'update_profile', 
       'user', user._id, { nom, prenom, telephone, adresse }, req
@@ -519,7 +601,6 @@ exports.changePassword = async (req, res) => {
     user.password = newPassword;
     await user.save();
     
-    // Journaliser
     await logAction(
       user._id, user.role, user.email, 'change_password', 
       'user', user._id, {}, req
@@ -546,7 +627,6 @@ exports.deleteUser = async (req, res) => {
     const userEmail = user.email;
     await user.deleteOne();
     
-    // Journaliser
     await logAction(
       req.user?._id, req.user?.role, req.user?.email, 'delete', 
       'user', req.params.id, { deletedUser: userEmail }, req
@@ -567,16 +647,16 @@ exports.deleteUser = async (req, res) => {
 // ==================== ACTIVATE USER ====================
 exports.activateUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { actif: true, isActive: true },
+      { new: true }
+    );
+    
     if (!user) {
       return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
     
-    user.actif = true;
-    user.isActive = true;
-    await user.save();
-    
-    // Journaliser
     await logAction(
       req.user?._id, req.user?.role, req.user?.email, 'activate', 
       'user', user._id, { userEmail: user.email }, req
@@ -587,7 +667,7 @@ exports.activateUser = async (req, res) => {
     res.json({
       success: true,
       message: 'Utilisateur activé avec succès',
-      data: formatUserResponse(user)
+      data: { id: user._id, actif: user.actif }
     });
   } catch (err) {
     console.error('❌ Erreur activateUser:', err);
@@ -598,16 +678,16 @@ exports.activateUser = async (req, res) => {
 // ==================== DEACTIVATE USER ====================
 exports.deactivateUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { actif: false, isActive: false },
+      { new: true }
+    );
+    
     if (!user) {
       return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
     
-    user.actif = false;
-    user.isActive = false;
-    await user.save();
-    
-    // Journaliser
     await logAction(
       req.user?._id, req.user?.role, req.user?.email, 'deactivate', 
       'user', user._id, { userEmail: user.email }, req
@@ -618,7 +698,7 @@ exports.deactivateUser = async (req, res) => {
     res.json({
       success: true,
       message: 'Utilisateur désactivé avec succès',
-      data: formatUserResponse(user)
+      data: { id: user._id, actif: user.actif }
     });
   } catch (err) {
     console.error('❌ Erreur deactivateUser:', err);
@@ -717,6 +797,55 @@ exports.getUserStats = async (req, res) => {
     });
   } catch (err) {
     console.error('❌ Erreur getUserStats:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ==================== USER HISTORY ====================
+
+exports.getUserHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const {
+      limit = 20, page = 1,
+      action, entityType,
+      startDate, endDate
+    } = req.query;
+
+    if (!History) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Service d\'historique non disponible' 
+      });
+    }
+
+    const query = { userId };
+    if (action) query.action = action;
+    if (entityType) query.entityType = entityType;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [history, total] = await Promise.all([
+      History.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      History.countDocuments(query)
+    ]);
+
+    res.json({
+      success: true,
+      history,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (err) {
+    console.error('❌ Erreur getUserHistory:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

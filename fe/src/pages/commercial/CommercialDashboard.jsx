@@ -369,7 +369,7 @@ const CommercialDashboard = () => {
 
     const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     saveAs(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
-      `ETAP_Dashboard_${getPeriodText()}.xlsx`);
+      `SMART-TRADE-360_Dashboard_${getPeriodText()}.xlsx`);
   };
 
   const getPeriodText = () => viewMode === 'yearly' ? `Année ${selectedYear}` : `${MONTHS[selectedMonth - 1]} ${selectedYear}`;
@@ -379,7 +379,7 @@ const CommercialDashboard = () => {
     return (
       <div className="dashboard-loading">
         <div className="spinner"></div>
-        <p>Chargement des données ETAP...</p>
+        <p>Chargement des données SMART-TRADE 360°...</p>
       </div>
     );
   }

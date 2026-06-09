@@ -107,20 +107,32 @@ exports.deleteEmission = async (req, res) => {
   }
 };
 
+// PATCH /api/emissions/:id/statut
 exports.updateStatut = async (req, res) => {
   try {
     const { statut } = req.body;
+    if (!statut) {
+      return res.status(400).json({ success: false, message: 'Statut requis' });
+    }
+
     const emission = await Emission.findByIdAndUpdate(
       req.params.id,
-      { statut, dateModification: Date.now() },
+      { statut, updatedAt: new Date() },
       { new: true }
-    );
-    res.json(emission);
+    )
+      .populate('contrat')
+      .populate('destination');
+
+    if (!emission) {
+      return res.status(404).json({ success: false, message: 'Emission introuvable' });
+    }
+
+    res.json({ success: true, data: emission, message: 'Statut mis à jour' });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error('Erreur PATCH /api/emissions/:id/statut:', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 };
-
 exports.exportToCSV = async (req, res) => {
   try {
     const emissions = await Emission.find().populate('contrat', 'numeroContrat').populate('destination', 'nom');

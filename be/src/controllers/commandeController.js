@@ -3,28 +3,57 @@ const Tiers = require('../models/Tiers');
 const Stock = require('../models/Stock');
 const Product = require('../models/Product');
 const HistoriqueController = require('./historiqueController');
+const ExportImport = require("../models/ExportImport");
+const Vente = require("../models/Vente");
 
 // Obtenir toutes les commandes
+// GET /api/commandes
 exports.getCommandes = async (req, res) => {
   try {
-    let query = {};
-    
-    if (req.user.role === 'Client') {
-      const client = await Tiers.findOne({ user: req.user.id });
-      if (client) {
-        query.client = client._id;
-      }
-    }
-    
-    const commandes = await Commande.find(query)
-      .populate('client', 'raisonSociale email')
-      .populate('produits.sousProduit', 'nom prixUnitaire uniteMesure')
-      .populate('commercial', 'nom email')
-      .sort({ dateCreation: -1 });
-    
-    res.json(commandes);
+    const [commandes, exports_, ventes] = await Promise.all([
+      Commande.find({})
+        .populate('client', 'nom prenom email raisonSociale')
+        .populate('produits.sousProduit', 'nom prixUnitaire uniteMesure')
+        .sort({ dateCommande: -1 })
+        .lean(),
+      ExportImport.find({})
+        .populate('produits.produit', 'nom prixUnitaire uniteMesure')
+        .sort({ date: -1 })
+        .lean(),
+      Vente.find({})
+        .sort({ dateVente: -1 })
+        .lean()
+    ]);
+
+    const normalized = [
+      ...commandes.map(c => ({ ...c, _sourceType: 'Commande' })),
+      ...exports_.map(e => ({
+        _id: e._id,
+        _sourceType: 'ExportImport',
+        numeroCommande: e.numero,
+        montantTotal: e.montantTotal || 0,
+        devise: e.devise || 'EUR',
+        statut: e.statut,
+        dateCommande: e.date,
+        produits: e.produits || [],
+        client: null
+      })),
+      ...ventes.map(v => ({
+        _id: v._id,
+        _sourceType: 'Vente',
+        numeroCommande: v.numeroVente,
+        montantTotal: v.montant || 0,
+        devise: 'TND',
+        statut: v.statut,
+        dateCommande: v.dateVente,
+        produits: [],
+        client: { raisonSociale: v.client }
+      }))
+    ];
+
+    res.json({ success: true, data: normalized });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

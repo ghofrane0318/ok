@@ -12,7 +12,7 @@ const SUGGESTED_QUESTIONS = [
   'Comment exporter les données en Excel ?',
 ];
 
-const SYSTEM_PROMPT = `Tu es ETAP Assistant, l'assistant virtuel intelligent de la plateforme ETAP (Entreprise de Travaux et Applications Pétrolières).
+const SYSTEM_PROMPT = `Tu es SMART-TRADE 360° Assistant, l'assistant virtuel intelligent de la plateforme SMART-TRADE 360° (Entreprise de Travaux et Applications Pétrolières).
 
 Tu aides les utilisateurs à :
 - Naviguer dans la plateforme (commandes, factures, contrats, livraisons, stock)
@@ -21,7 +21,7 @@ Tu aides les utilisateurs à :
 - Obtenir des informations sur les fonctionnalités disponibles
 
 Réponds toujours en français, de manière concise et professionnelle.
-Si une question ne concerne pas la plateforme ETAP ou les métiers pétroliers, redirige poliment vers les sujets pertinents.
+Si une question ne concerne pas la plateforme SMART-TRADE 360° ou les métiers pétroliers, redirige poliment vers les sujets pertinents.
 Utilise des listes et du formatage Markdown pour les réponses longues.`;
 
 const Chatbot = () => {
@@ -30,7 +30,7 @@ const Chatbot = () => {
     {
       id: 1,
       role: 'assistant',
-      content: `Bonjour ${user?.nom || user?.pseudo || 'utilisateur'} 👋\n\nJe suis **ETAP Assistant**, votre assistant virtuel. Je peux vous aider à naviguer dans la plateforme, comprendre les processus métiers et répondre à vos questions.\n\nComment puis-je vous aider aujourd'hui ?`,
+      content: `Bonjour ${user?.nom || user?.pseudo || 'utilisateur'} 👋\n\nJe suis **SMART-TRADE 360° Assistant**, votre assistant virtuel. Je peux vous aider à naviguer dans la plateforme, comprendre les processus métiers et répondre à vos questions.\n\nComment puis-je vous aider aujourd'hui ?`,
       timestamp: new Date(),
     }
   ]);
@@ -195,7 +195,7 @@ const Chatbot = () => {
       return "🚚 **Suivi de livraison**\n\nPour suivre votre livraison :\n1. Accédez à **Logistique** > **Suivi livraisons**\n2. Entrez votre numéro de commande\n3. Consultez le statut en temps réel\n\nLes statuts possibles : En préparation, Expédiée, En transit, Livrée.";
     }
     
-    return "🤖 Je suis votre assistant ETAP. Je peux vous aider avec :\n\n• 📦 Commandes et devis\n• 💰 Factures et paiements\n• 📄 Contrats et signatures\n• 🚚 Livraisons et logistique\n• 📊 Exports et rapports\n\nPosez-moi votre question sur l'un de ces sujets !";
+    return "🤖 Je suis votre Assistant SMART-TRADE 360°. Je peux vous aider avec :\n\n• 📦 Commandes et devis\n• 💰 Factures et paiements\n• 📄 Contrats et signatures\n• 🚚 Livraisons et logistique\n• 📊 Exports et rapports\n\nPosez-moi votre question sur l'un de ces sujets !";
   };
 
   const handleKeyDown = (e) => {
@@ -265,7 +265,7 @@ const Chatbot = () => {
             <span className="chat-online-dot" />
           </div>
           <div>
-            <h1>ETAP Assistant</h1>
+            <h1>SMART-TRADE 360° Assistant</h1>
             <p className={loading ? 'chat-typing-text' : ''}>
               {loading ? 'En train de répondre...' : 'Assistant virtuel · En ligne'}
             </p>

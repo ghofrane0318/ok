@@ -232,15 +232,22 @@
 }
 .logo-section {
   display: flex; align-items: center; gap: .75rem; margin-bottom: .35rem;
+  color: #ffffff;
 }
-.logo-icon { font-size: 1.75rem; }
+.logo-icon {
+  font-size: 1.75rem;
+  color: #ffffff;
+}
 .header-content h1 {
-  font-size: 1.4rem; font-weight: 600; color: #fff;
+  font-size: 1.4rem; font-weight: 600;
+  color: #ffffff !important;
   margin: 0; letter-spacing: -.025em;
 }
 .header-content p {
-  font-size: .8125rem; color: rgba(255,255,255,.5);
-  margin: .25rem 0 0; font-weight: 300;
+  font-size: .8125rem;
+  color: #ffffff !important;
+  margin: .25rem 0 0; font-weight: 400;
+  opacity: 1;
 }
 
 .cart-mini-badge {

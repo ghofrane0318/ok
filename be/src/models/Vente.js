@@ -1,54 +1,17 @@
-// models/Vente.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const venteSchema = new mongoose.Schema({
-  numeroVente: { 
-    type: String, 
-    unique: true, 
-    required: true 
-  },
-  dateVente: { 
-    type: Date, 
-    default: Date.now 
-  },
-  client: { 
-    type: String, 
-    default: 'STEG',
-    required: true 
-  },
-  produit: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Product',
-    required: true 
-  },
-  quantite: { 
-    type: Number, 
-    required: true,
-    min: 0 
-  },
-  prixUnitaire: { 
-    type: Number, 
-    required: true,
-    min: 0 
-  },
-  montantTotal: { 
-    type: Number, 
-    required: true 
-  },
-  contratRef: { 
-    type: String 
-  },
-  statut: { 
-    type: String, 
-    enum: ['en_attente', 'confirmee', 'livree', 'facturee'], 
-    default: 'en_attente' 
-  },
-  createdBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
+  numeroVente: { type: String, required: true, unique: true },
+  client: { type: String, required: true },
+  produit: { type: String, required: true },
+  quantite: { type: Number, required: true },
+  montant: { type: Number, required: true },
+  dateVente: { type: Date, default: Date.now },
+  statut: {
+    type: String,
+    enum: ['En attente', 'Confirmée', 'Livrée', 'Annulée'],
+    default: 'En attente'
   }
-}, {
-  timestamps: true
 });
 
-module.exports = mongoose.model('Vente', venteSchema);
+module.exports = mongoose.models.Vente || mongoose.model('Vente', venteSchema);

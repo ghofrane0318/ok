@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 // GET tous les produits
 router.get('/', protect, async (req, res) => {
@@ -49,29 +49,55 @@ router.post('/', protect, authorize('Admin', 'Commercial'), async (req, res) => 
       return res.status(400).json({ message: 'Le prix unitaire doit être un nombre positif' });
     }
     
-    const product = new Product({
-      ...req.body,
-      nom: nom.trim(),
-      prixUnitaire: parseFloat(prixUnitaire),
-      stockInitial: parseInt(req.body.stockInitial) || 0
-    });
-    
-    await product.save();
-    
-    res.status(201).json({ 
-      success: true, 
-      data: product,
+    // Générer un codeProduit unique si non fourni
+    let codeProduit = req.body.codeProduit;
+    if (!codeProduit) {
+      const prefix = type === 'STEG' ? 'STEG' : 'STIR';
+      const cleanNom = nom.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase() || 'PROD';
+      codeProduit = `${prefix}-${cleanNom}-${Date.now()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    }
+
+    // Boucle de retry si le code existe déjà
+    let attempts = 0;
+    let saved = false;
+    let savedProduct = null;
+
+    while (!saved && attempts < 5) {
+      try {
+        const product = new Product({
+          ...req.body,
+          nom: nom.trim(),
+          prixUnitaire: parseFloat(prixUnitaire),
+          stockInitial: parseInt(req.body.stockInitial) || 0,
+          codeProduit: attempts === 0 ? codeProduit : `${codeProduit}-${attempts}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+        });
+        savedProduct = await product.save();
+        saved = true;
+      } catch (err) {
+        if (err.code === 11000) {
+          attempts++;
+          console.log(`⚠️ Code dupliqué, tentative ${attempts}/5`);
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (!saved) {
+      return res.status(400).json({ message: 'Impossible de générer un code unique après 5 tentatives' });
+    }
+
+    console.log('✅ Produit créé:', savedProduct.codeProduit);
+    res.status(201).json({
+      success: true,
+      data: savedProduct,
       message: 'Produit créé avec succès'
     });
   } catch (error) {
     console.error('Erreur création:', error);
-    
-    if (error.code === 11000) {
-      return res.status(400).json({ message: 'Un produit avec ce code existe déjà' });
-    }
-    
-    res.status(400).json({ 
-      message: error.message || 'Erreur lors de la création du produit' 
+
+    res.status(400).json({
+      message: error.message || 'Erreur lors de la création du produit'
     });
   }
 });

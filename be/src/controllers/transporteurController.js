@@ -18,3 +18,14 @@ exports.createTransporteur = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+// GET /api/transporteurs
+exports.getTransporteurs = async (req, res) => {
+  try {
+    const transporteurs = await User.find({ role: 'Transporteur' })
+      .select('nom prenom email raisonSociale code')
+      .lean();
+    res.json({ success: true, data: transporteurs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

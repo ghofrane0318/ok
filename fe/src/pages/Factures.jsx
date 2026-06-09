@@ -363,7 +363,7 @@ function Factures() {
       doc.setTextColor(0, 0, 0);
       const partLeft = (partenaireNom || 'CLIENT').toUpperCase().substring(0, 28);
       doc.text(partLeft, sigLeft, yPosition);
-      doc.text('ETAP', sigRight, yPosition);
+      doc.text('SMART-TRADE 360°', sigRight, yPosition);
 
       yPosition += 7;
 
@@ -376,12 +376,12 @@ function Factures() {
       yPosition += 5;
       doc.text(dots, sigLeft, yPosition);
 
-      // ── Zone signature droite : image signature ETAP ──────────
+      // ── Zone signature droite : image signature SMART-TRADE 360° ──────────
       const sigImgY = yPosition - 12;
       const sigImgX = sigRight;
       const sigImgW = sigColW;
-      const sigImgH = 18;
-      const signatureBase64 = await loadSignatureImage('/signature-etap.png');
+      const sigImgH = 30;
+      const signatureBase64 = await loadSignatureImage('/images/signature-etap.jpg');
       if (signatureBase64) {
         doc.addImage(signatureBase64, 'PNG', sigImgX, sigImgY, sigImgW, sigImgH);
       } else {
@@ -389,40 +389,8 @@ function Factures() {
         doc.text(dots, sigRight, yPosition);
       }
 
-      // ── Cachets circulaires (chevauchant la zone signature) ──
-      const stampY = yPosition - 2;
-      const stampR = 15;
-      const stampLX = sigLeft + sigColW / 2;
-      const stampRX = sigRight + sigColW / 2;
-
-      // Cachet gauche (bleu — partenaire)
-      doc.setDrawColor(10, 60, 140);
-      doc.setLineWidth(1.0);
-      doc.circle(stampLX, stampY, stampR);
-      doc.setLineWidth(0.3);
-      doc.circle(stampLX, stampY, stampR - 3);
-      doc.setFontSize(5);
-      doc.setTextColor(10, 60, 140);
-      const shortName = (partenaireNom || 'CLIENT').substring(0, 18).toUpperCase();
-      doc.text(shortName, stampLX, stampY - 6, { align: 'center' });
-      doc.text('✦', stampLX, stampY, { align: 'center' });
-      doc.text('Le Directeur', stampLX, stampY + 5, { align: 'center' });
-      doc.text('Général', stampLX, stampY + 9, { align: 'center' });
-
-      // Cachet droit (rouge — ETAP)
-      doc.setDrawColor(160, 20, 20);
-      doc.setLineWidth(1.0);
-      doc.circle(stampRX, stampY, stampR);
-      doc.setLineWidth(0.3);
-      doc.circle(stampRX, stampY, stampR - 3);
-      doc.setFontSize(5);
-      doc.setTextColor(160, 20, 20);
-      doc.text('E.T.A.P.', stampRX, stampY - 6, { align: 'center' });
-      doc.text('✦', stampRX, stampY, { align: 'center' });
-      doc.text('Le Directeur', stampRX, stampY + 5, { align: 'center' });
-      doc.text('Général', stampRX, stampY + 9, { align: 'center' });
-
-      yPosition = stampY + stampR + 8;
+      // ── Plus de cachets - on garde uniquement la signature ───
+      yPosition += 30;
 
       // ── Ligne de nom sous le cachet ──────────────────────────
       doc.setDrawColor(0, 0, 0);

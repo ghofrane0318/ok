@@ -90,8 +90,8 @@ const produitsSTEG = [
   { id: 'STEG_ELEC_003', nom: 'Électricité Très Haute Tension (90kV)', prixUnitaire: 0.380, uniteMesure: 'kWh', type: 'électricité', fournisseur: 'STEG', categorie: 'Électricité' },
   
   // Gaz Naturel
-  { id: 'STEG_GAZ_001', nom: 'Gaz Naturel Domestique', prixUnitaire: 0.280, uniteMesure: 'm³', type: 'gaz', fournisseur: 'STEG', categorie: 'Gaz Naturel', source: 'ETAP' },
-  { id: 'STEG_GAZ_002', nom: 'Gaz Naturel Industriel', prixUnitaire: 0.350, uniteMesure: 'm³', type: 'gaz', fournisseur: 'STEG', categorie: 'Gaz Naturel', source: 'ETAP' },
+  { id: 'STEG_GAZ_001', nom: 'Gaz Naturel Domestique', prixUnitaire: 0.280, uniteMesure: 'm³', type: 'gaz', fournisseur: 'STEG', categorie: 'Gaz Naturel', source: 'SMART-TRADE 360°' },
+  { id: 'STEG_GAZ_002', nom: 'Gaz Naturel Industriel', prixUnitaire: 0.350, uniteMesure: 'm³', type: 'gaz', fournisseur: 'STEG', categorie: 'Gaz Naturel', source: 'SMART-TRADE 360°' },
   
   // GPL
   { id: 'STEG_GPL_001', nom: 'Propane (Bouteille 13kg)', prixUnitaire: 8.500, uniteMesure: 'Bouteille', type: 'gpl', fournisseur: 'STEG', categorie: 'GPL' },
@@ -428,9 +428,9 @@ function MesCommandes({ vue = 'toutes' }) {
       {vue === 'toutes' && (
         <div className="chaine-energetique">
           <div className="chaine-container">
-            <div className="chaine-item etap">
+            <div className="chaine-item SMART-TRADE 360°">
               <span className="chaine-icon">🛢️</span>
-              <h4>ETAP</h4>
+              <h4>SMART-TRADE 360°</h4>
               <p>Production pétrole & gaz</p>
             </div>
             <div className="chaine-fleche">→</div>

@@ -251,7 +251,7 @@ function Tiers() {
         <div className="tiers-header-left">
           <span className="tiers-header-icon">🛢️</span>
           <div>
-            <span className="tiers-company-name">ETAP</span>
+            <span className="tiers-company-name">SMART-TRADE 360°</span>
             <h1>Gestion des Tiers</h1>
             <p>Entreprise Tunisienne d'Activités Pétrolières · Clients &amp; Fournisseurs</p>
           </div>
@@ -270,12 +270,12 @@ function Tiers() {
       <div className="tiers-legend">
         <div className="legend-item">
           <span className="tiers-type-badge badge-client">👤 Client</span>
-          <span>Entité qui <strong>achète</strong> à ETAP · valeur <code>0</code></span>
+          <span>Entité qui <strong>achète</strong> à SMART-TRADE 360° · valeur <code>0</code></span>
         </div>
         <span className="legend-sep">·</span>
         <div className="legend-item">
           <span className="tiers-type-badge badge-fournisseur">🏭 Fournisseur</span>
-          <span>Entité qui <strong>fournit</strong> des biens/services à ETAP · valeur <code>1</code></span>
+          <span>Entité qui <strong>fournit</strong> des biens/services à SMART-TRADE 360° · valeur <code>1</code></span>
         </div>
       </div>
 
@@ -351,7 +351,7 @@ function Tiers() {
             <div className="tiers-modal-header">
               <div>
                 <h2>{editingId ? '✏️ Modifier le tiers' : '➕ Nouveau tiers'}</h2>
-                <p>ETAP · Entreprise Tunisienne d'Activités Pétrolières</p>
+                <p>SMART-TRADE 360° · Entreprise Tunisienne d'Activités Pétrolières</p>
               </div>
               <button className="tiers-modal-close" onClick={() => setShowModal(false)}>✕</button>
             </div>

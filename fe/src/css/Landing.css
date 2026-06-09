@@ -1528,52 +1528,69 @@ body {
 }
 
 .laboratoire-info {
-  background: linear-gradient(135deg, var(--light-50) 0%, rgba(0, 212, 255, 0.08) 100%);
-  padding: var(--space-8);
+  background: linear-gradient(135deg, var(--light-50) 0%, rgba(0, 212, 255, 0.06) 100%);
+  padding: 32px;
   border-radius: 16px;
   border: 1.5px solid var(--light-200);
   box-shadow: var(--shadow-sm);
+  overflow: visible;
 }
 
-.laboratoire-info p {
+.laboratoire-info h3 {
+  font-family: var(--font-display);
+  color: var(--primary-950);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.detail-info {
   color: var(--light-500);
   line-height: 1.8;
-  margin-bottom: var(--space-4);
   font-size: var(--text-sm);
+  margin-bottom: 20px;
 }
 
 .visites-info {
-  background: linear-gradient(135deg, var(--accent-emerald), rgba(16, 185, 129, 0.8));
-  padding: var(--space-5);
+  background: linear-gradient(135deg, var(--accent-emerald) 0%, rgba(16, 185, 129, 0.82) 100%);
+  padding: 16px 20px;
   border-radius: 12px;
   color: var(--white);
   font-weight: 600;
   font-size: var(--text-sm);
-  margin: var(--space-6) 0;
-  line-height: 1.6;
+  line-height: 1.7;
   box-shadow: var(--shadow-md);
+  border-left: 4px solid rgba(255,255,255,0.35);
+  margin-bottom: 24px;
 }
 
 .btn-pdf {
-  display: inline-block;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, var(--primary-900), var(--primary-800));
-  color: var(--white);
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: var(--text-sm);
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
-  margin-top: var(--space-4);
-  position: relative;
-  overflow: hidden;
-  border: 1px solid transparent;
+  display: block;
+  width: fit-content;
+  padding: 13px 28px;
+  background: linear-gradient(135deg, #e53e3e, #c53030);
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 16px rgba(197, 48, 48, 0.38);
+  border: none;
+  white-space: nowrap;
+  cursor: pointer;
+  margin-top: 4px;
 }
 
 .btn-pdf:hover {
+  background: linear-gradient(135deg, #c53030, #9b2c2c);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 24px rgba(197, 48, 48, 0.5);
+  color: #ffffff;
+}
+
+.btn-pdf:visited {
+  color: #ffffff;
 }
 
 /* ==================== SECTION: CONTACT ==================== */
@@ -1718,6 +1735,207 @@ body {
 .email-card a:hover {
   color: var(--accent-cyan);
   opacity: 1;
+}
+
+/* ==================== SECTION: SMART-TRADE 360° DÉCRYPTAGE ==================== */
+
+.decrypt-section {
+  padding: 100px 40px;
+  background: linear-gradient(180deg, #f0f5fb 0%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.decrypt-section::before {
+  content: '360°';
+  position: absolute;
+  top: -20px;
+  right: -40px;
+  font-size: 260px;
+  font-weight: 900;
+  color: rgba(26, 60, 94, 0.04);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Cartes des mots ── */
+.decrypt-words {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 860px;
+  margin: 56px auto 0;
+}
+
+.decrypt-card {
+  display: flex;
+  gap: 28px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid #e4edf7;
+  box-shadow: 0 4px 24px rgba(13, 43, 62, 0.07);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.decrypt-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(13, 43, 62, 0.13);
+}
+
+/* Barre colorée gauche */
+.decrypt-smart { border-left: 5px solid #1a3c5e; }
+.decrypt-trade  { border-left: 5px solid #10b981; }
+.decrypt-360   { border-left: 5px solid #a855f7; }
+
+/* Grande lettre décorative */
+.decrypt-letter {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 900;
+  color: #ffffff;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.decrypt-smart .decrypt-letter { background: linear-gradient(135deg, #1a3c5e, #3d5e7e); }
+.decrypt-trade  .decrypt-letter { background: linear-gradient(135deg, #059669, #10b981); }
+.decrypt-360   .decrypt-letter { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+
+.decrypt-body { flex: 1; }
+
+.decrypt-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.decrypt-word {
+  font-size: 32px;
+  font-weight: 900;
+  color: #0d2b3e;
+  margin: 0 0 6px;
+  letter-spacing: 1px;
+}
+.decrypt-smart .decrypt-word { color: #1a3c5e; }
+.decrypt-trade  .decrypt-word { color: #059669; }
+.decrypt-360   .decrypt-word { color: #7c3aed; }
+
+.decrypt-meaning {
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 10px;
+  font-style: italic;
+}
+
+.decrypt-desc {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+
+/* Tags inline */
+.decrypt-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dtag {
+  background: #f0f5fb;
+  color: #1a3c5e;
+  border: 1px solid #e4edf7;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Grille 360° features */
+.decrypt-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+.decrypt-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.dfi-icon { font-size: 18px; flex-shrink: 0; }
+.dfi-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6d28d9;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.dfi-text small {
+  font-size: 10px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+/* ── Résumé final ── */
+.decrypt-summary {
+  max-width: 860px;
+  margin: 40px auto 0;
+}
+.decrypt-summary-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: linear-gradient(135deg, #0d2b3e, #1a3c5e);
+  border-radius: 20px;
+  padding: 28px 32px;
+}
+.decrypt-summary-logo {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+.decrypt-summary-sep {
+  font-size: 22px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+}
+.decrypt-summary-result {
+  font-size: 15px;
+  font-weight: 700;
+  color: #93c5fd;
+  background: rgba(255,255,255,0.08);
+  padding: 8px 18px;
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.15);
+  margin-left: 8px;
+}
+
+@media (max-width: 640px) {
+  .decrypt-card { flex-direction: column; }
+  .decrypt-features-grid { grid-template-columns: repeat(2, 1fr); }
+  .decrypt-summary-inner { flex-direction: column; text-align: center; }
+  .decrypt-summary-result { margin-left: 0; }
 }
 
 /* ==================== SECTION: CTA ==================== */

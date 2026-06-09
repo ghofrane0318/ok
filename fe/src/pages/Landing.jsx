@@ -17,7 +17,7 @@ function Landing() {
   }, []);
 
   const openETAPWebsite = () => {
-    window.open('https://www.etap.com.tn/', '_blank');
+    window.open('https://www.SMART-TRADE 360°.com.tn/', '_blank');
   };
 
   // Données pour l'évolution de l'effectif
@@ -57,12 +57,12 @@ function Landing() {
             {!logoError ? (
               <img 
                 src={logoTap} 
-                alt="Logo ETAP" 
+                alt="Logo SMART-TRADE 360°" 
                 className="logo-img"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <div className="logo-placeholder">ETAP</div>
+              <div className="logo-placeholder">SMART-TRADE 360° </div>
             )}
           </div>
           
@@ -73,7 +73,7 @@ function Landing() {
             style={{ cursor: 'pointer' }}
           >
             <div className="landing-logo-text">
-              <span>ETAP</span>
+              <span>SMART-TRADE 360°</span>
               <small>Entreprise Tunisienne d'Activités Pétrolières</small>
             </div>
           </div>
@@ -85,6 +85,7 @@ function Landing() {
             <li><a href="#vision">Vision & Valeurs</a></li>
             <li><a href="#capital-humain">Capital humain</a></li>
             <li><a href="#laboratoires">Laboratoires</a></li>
+            <li><a href="#smart-trade">SMART-TRADE 360°</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
           
@@ -101,7 +102,7 @@ function Landing() {
             onClick={openETAPWebsite}
             style={{ cursor: 'pointer' }}
           >
-            Plateforme Officielle ETAP
+            Plateforme Officielle SMART-TRADE 360° 
           </div>
           <h1>Entreprise Tunisienne <span>d'Activités Pétrolières</span></h1>
           <p>
@@ -116,7 +117,7 @@ function Landing() {
                 <polyline points="12 5 19 12 12 19"/>
               </svg>
             </Link>
-            <a href="#qui-sommes-nous" className="btn-hero-secondary">Découvrir l'ETAP</a>
+            <a href="#qui-sommes-nous" className="btn-hero-secondary">Découvrir la SMART-TRADE 360°</a>
           </div>
         </div>
       </section>
@@ -153,14 +154,14 @@ function Landing() {
         {activeTab === 'presentation' && (
           <div className="presentation-content">
             <div className="presentation-text">
-              <h3>L'Entreprise Tunisienne d'Activités Pétrolières « ETAP »</h3>
+              <h3>L'Entreprise Tunisienne d'Activités Pétrolières « SMART-TRADE 360° »</h3>
               <p>
-                L'ETAP a été créée en vertu de la <strong>Loi N° 72-22 du 10 Mars 1972</strong>, 
+                La SMART-TRADE 360° a été créée en vertu de la <strong>Loi N° 72-22 du 10 Mars 1972</strong>, 
                 elle est entrée en activité effective en 1974 (déclaration d'existence du 01/07/1974 
                 et inscription au Registre de Commerce du 16/07/1974).
               </p>
               <p>
-                ETAP est classée conformément au <strong>Décret N° 97-564 du 31 mars 1997</strong> 
+                La SMART-TRADE 360° est classée conformément au <strong>Décret N° 97-564 du 31 mars 1997</strong> 
                 parmi les établissements publics à caractère non administratif (EPNA), sous tutelle 
                 du <strong>Ministère de l'Industrie, des Mines et de l'Energie</strong>.
               </p>
@@ -222,7 +223,7 @@ function Landing() {
                 <span className="texte-icon">📜</span>
                 <div>
                   <h4>Décret N° 73-173 du 16 Avril 1973</h4>
-                  <p>Portant organisation et fonctionnement de l'ETAP</p>
+                  <p>Portant organisation et fonctionnement de l'SMART-TRADE 360°</p>
                 </div>
               </div>
               <div className="texte-card">
@@ -288,7 +289,7 @@ function Landing() {
             <div className="vision-grid">
               <div className="vision-item"><span>🎯</span><p>La relance et la promotion de l'exploration</p></div>
               <div className="vision-item"><span>📈</span><p>L'augmentation de la production</p></div>
-              <div className="vision-item"><span>🔄</span><p>La transformation de l'ETAP</p></div>
+              <div className="vision-item"><span>🔄</span><p>La transformation de SMART-TRADE 360°</p></div>
               <div className="vision-item"><span>💰</span><p>La maîtrise des coûts</p></div>
             </div>
           </div>
@@ -430,10 +431,10 @@ function Landing() {
           <h3>Bilans Sociaux</h3>
           <p>Consultez nos rapports annuels sur les ressources humaines</p>
           <div className="bilans-links">
-            <a href="https://www.etap.com.tn/storage/BilanSocial2022.pdf" target="_blank" rel="noopener noreferrer" className="bilan-link pdf">
+            <a href="https://www.SMART-TRADE 360°.com.tn/storage/BilanSocial2022.pdf" target="_blank" rel="noopener noreferrer" className="bilan-link pdf">
               📄 Bilan Social 2022
             </a>
-            <a href="https://www.etap.com.tn/storage/BilanSocial2023.pdf" target="_blank" rel="noopener noreferrer" className="bilan-link pdf">
+            <a href="https://www.SMART-TRADE 360°.com.tn/storage/BilanSocial2023.pdf" target="_blank" rel="noopener noreferrer" className="bilan-link pdf">
               📄 Bilan Social 2023
             </a>
           </div>
@@ -451,7 +452,7 @@ function Landing() {
           <div className="services-list">
             <h3>Prestations externes et internes</h3>
             <ul className="lab-list">
-              <li>🔬 Analyses des huiles brutes, de gaz et des dépôts solides organiques</li>
+              <li>Analyses des huiles brutes, de gaz et des dépôts solides organiques</li>
               <li>🧪 Études de compatibilité des huiles brutes</li>
               <li>⚙️ Evaluation de la performance des inhibiteurs de paraffines</li>
               <li>💧 Analyses des eaux et des dépôts solides inorganiques</li>
@@ -461,14 +462,35 @@ function Landing() {
               <li>🦴 Études biostratigraphiques</li>
               <li>📈 Analyses pétrophysiques</li>
               <li>🏔️ Études sédimentologiques et pétrographiques</li>
-              <li>🔬 Analyses au Microscope Électronique à Balayage (MEB)</li>
+              <li> Analyses au Microscope Électronique à Balayage (MEB)</li>
             </ul>
           </div>
           <div className="laboratoire-info">
             <h3>À propos des Laboratoires</h3>
             <p className="detail-info">Les laboratoires continuent à assurer des prestations en interne et pour le compte de tiers. L'équipe HSE assure le suivi de l'étude de rénovation de l'installation de distribution des gaz des laboratoires au Centre de Recherche et Développement Pétroliers « CRDP ».</p>
-            <p className="visites-info">🎓 Les laboratoires de l'ETAP offrent des visites guidées pour les sociétés pétrolières et les institutions universitaires, assurant ainsi le rôle actif de l'ETAP dans la formation des étudiants.</p>
-            <a href="https://www.etap.com.tn/storage/crdp/ETAP_Laboratories_Services_2024.pdf" target="_blank" rel="noopener noreferrer" className="btn-pdf">📥 Télécharger la liste des services</a>
+            <p className="visites-info">🎓 Les laboratoires de l'SMART-TRADE 360° offrent des visites guidées pour les sociétés pétrolières et les institutions universitaires, assurant ainsi le rôle actif de l'SMART-TRADE 360° dans la formation des étudiants.</p>
+            <a
+              href="https://www.SMART-TRADE 360°.com.tn/storage/crdp/SMART-TRADE-360_Laboratories_Services_2024.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block',
+                width: 'fit-content',
+                marginTop: '16px',
+                padding: '12px 28px',
+                background: 'linear-gradient(135deg, #e53e3e, #c53030)',
+                color: '#ffffff',
+                borderRadius: '12px',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                textDecoration: 'none',
+                boxShadow: '0 4px 16px rgba(197,48,48,0.38)',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+              }}
+            >
+              📥 Télécharger la liste des services
+            </a>
           </div>
         </div>
       </section>
@@ -512,7 +534,113 @@ function Landing() {
           <div className="email-card">
             <span>✉️</span>
             <p>Pour toute demande d'information :</p>
-            <a href="mailto:contact@etap.com.tn">contact@etap.com.tn</a>
+            <a href="mailto:contact@SMART-TRADE 360°.com.tn">contact@SMART-TRADE 360°.com.tn</a>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== SMART-TRADE 360°  ========== */}
+      <section className="decrypt-section" id="smart-trade">
+        <div className="section-header">
+          <div className="section-label">Comprendre la plateforme</div>
+          <h2 className="section-title">SMART-TRADE 360° </h2>
+          
+        </div>
+
+        <div className="decrypt-words">
+
+          {/* SMART */}
+          <div className="decrypt-card decrypt-smart">
+            <div className="decrypt-letter">S</div>
+            <div className="decrypt-body">
+              <div className="decrypt-tag">Mot 1 / 3</div>
+              <h3 className="decrypt-word">SMART</h3>
+              <p className="decrypt-meaning">Intelligent, connecté, moderne.</p>
+              <p className="decrypt-desc">
+                Indique que la plateforme utilise des technologies avancées — pas un simple logiciel,
+                mais un système qui pense, analyse et aide à décider grâce à l'automatisation
+                et aux tableaux de bord en temps réel.
+              </p>
+              <div className="decrypt-tags-row">
+                <span className="dtag">🧠 Automatisation</span>
+                <span className="dtag">📊 Tableaux de bord</span>
+                <span className="dtag">⚡ Temps réel</span>
+              </div>
+            </div>
+          </div>
+
+          {/* TRADE */}
+          <div className="decrypt-card decrypt-trade">
+            <div className="decrypt-letter">T</div>
+            <div className="decrypt-body">
+              <div className="decrypt-tag">Mot 2 / 3</div>
+              <h3 className="decrypt-word">TRADE</h3>
+              <p className="decrypt-meaning">Commerce / Échange commercial.</p>
+              <p className="decrypt-desc">
+                Représente le cœur du projet : gestion des ventes, achats, clients, stocks,
+                factures — toute l'activité commerciale au quotidien centralisée
+                en un seul endroit accessible à tous les acteurs.
+              </p>
+              <div className="decrypt-tags-row">
+                <span className="dtag">🛒 Ventes & Achats</span>
+                <span className="dtag">🏢 Clients</span>
+                <span className="dtag">📦 Stocks & Factures</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 360° */}
+          <div className="decrypt-card decrypt-360">
+            <div className="decrypt-letter">°</div>
+            <div className="decrypt-body">
+              <div className="decrypt-tag">Mot 3 / 3</div>
+              <h3 className="decrypt-word">360°</h3>
+              <p className="decrypt-meaning">Vision complète, sans angle mort.</p>
+              <p className="decrypt-desc">
+                Le ° symbolise un cercle parfait — la plateforme tourne autour de votre business
+                et couvre absolument tout, du web au mobile, de la sécurité à la traçabilité.
+              </p>
+              <div className="decrypt-features-grid">
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">🌐</span>
+                  <span className="dfi-text">Web + Mobile <small>omnicanal</small></span>
+                </div>
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">🔒</span>
+                  <span className="dfi-text">Sécurité <small>authentification</small></span>
+                </div>
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">📦</span>
+                  <span className="dfi-text">Traçabilité <small>QR Code</small></span>
+                </div>
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">📊</span>
+                  <span className="dfi-text">Dashboard <small>décisionnel</small></span>
+                </div>
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">👥</span>
+                  <span className="dfi-text">Clients, stocks <small>ventes, factures</small></span>
+                </div>
+                <div className="decrypt-feature-item">
+                  <span className="dfi-icon">⚠️</span>
+                  <span className="dfi-text">Pénalités <small>retard automatisé</small></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Résumé final */}
+        <div className="decrypt-summary">
+          <div className="decrypt-summary-inner">
+            <span className="decrypt-summary-logo">SMART</span>
+            <span className="decrypt-summary-sep">+</span>
+            <span className="decrypt-summary-logo">TRADE</span>
+            <span className="decrypt-summary-sep">+</span>
+            <span className="decrypt-summary-logo">360°</span>
+            <span className="decrypt-summary-sep">=</span>
+            <span className="decrypt-summary-result">Votre plateforme pétrolière tout-en-un</span>
           </div>
         </div>
       </section>
@@ -521,7 +649,7 @@ function Landing() {
       <section className="cta-section">
         <div className="cta-card">
           <h2>Prêt à optimiser vos ressources ?</h2>
-          <p>Rejoignez l'écosystème ETAP et transformez vos opérations commerciales en un avantage stratégique.</p>
+          <p>Rejoignez l'écosystème SMART-TRADE 360°  et transformez vos opérations commerciales en un avantage stratégique.</p>
           <Link to="/login" className="btn-hero-primary">
             Commencer l'expérience
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -536,7 +664,7 @@ function Landing() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-logo">
-            <h3 onClick={openETAPWebsite} style={{ cursor: 'pointer' }}>ETAP</h3>
+            <h3 onClick={openETAPWebsite} style={{ cursor: 'pointer' }}>SMART-TRADE 360°</h3>
             <p>Entreprise Tunisienne d'Activités Pétrolières</p>
           </div>
           <div className="footer-links">
@@ -547,7 +675,7 @@ function Landing() {
             <a href="#laboratoires">Laboratoires</a>
             <a href="#contact">Contact</a>
           </div>
-          <p className="footer-copyright">© 2026 ETAP — Système de Gestion Intégré. Tous droits réservés.</p>
+          <p className="footer-copyright">© 2026 SMART-TRADE 360° — Système de Gestion Intégré. Tous droits réservés.</p>
           <p className="footer-credit">Propulsé par l'Ingénierie MERN</p>
         </div>
       </footer>

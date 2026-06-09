@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Vente = require('../models/Vente');
-const { protectRoute } = require('../middleware/auth');
+const { protectRoute } = require('../middlewares/authMiddleware');
 
 // GET toutes les ventes
 router.get('/', protectRoute, async (req, res) => {

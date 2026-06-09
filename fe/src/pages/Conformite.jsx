@@ -177,30 +177,69 @@ function Conformite() {
       setError(null);
 
       let conformitesData = [];
+      // Charger conformités depuis MongoDB
       try {
         const res = await api.get('/conformites');
         conformitesData = extractArray(res.data);
-      } catch {
-        conformitesData = mockConformites;
-        showNotification('Utilisation des données mockées pour la conformité', 'info');
+        console.log('✅ Conformités MongoDB:', conformitesData.length);
+      } catch (err) {
+        console.error('❌ Erreur API conformités:', err.message);
+        showNotification('Erreur de chargement des conformités', 'error');
+        conformitesData = [];
       }
       setConformites(conformitesData);
 
+      // Charger documents (utilise factures + contrats comme documents)
       let docsData = [];
       try {
-        const res = await api.get('/documents');
-        docsData = extractArray(res.data);
-      } catch {
-        docsData = mockDocuments;
+        const [factRes, contratRes] = await Promise.allSettled([
+          api.get('/factures'),
+          api.get('/contrats')
+        ]);
+        const factures = factRes.status === 'fulfilled' ? extractArray(factRes.value.data) : [];
+        const contrats = contratRes.status === 'fulfilled' ? extractArray(contratRes.value.data) : [];
+
+        docsData = [
+          ...factures.map(f => ({
+            _id: f._id,
+            type: 'Facture',
+            numero: f.numeroFacture || f._id?.slice(-6)
+          })),
+          ...contrats.map(c => ({
+            _id: c._id,
+            type: 'Contrat',
+            numero: c.numero || c.numeroContrat || c._id?.slice(-6)
+          }))
+        ];
+        console.log('✅ Documents (factures+contrats):', docsData.length);
+      } catch (err) {
+        console.error('❌ Erreur documents:', err.message);
+        docsData = [];
       }
       setDocuments(docsData);
 
+      // Charger TOUS les utilisateurs depuis MongoDB
       let usersData = [];
       try {
+        // Essai 1: /api/users
         const res = await api.get('/users');
         usersData = extractArray(res.data);
-      } catch {
-        usersData = mockUsers;
+
+        // Essai 2: si vide, fallback sur /api/debug/users
+        if (usersData.length === 0) {
+          const res2 = await api.get('/debug/users');
+          usersData = res2.data?.users || [];
+        }
+        console.log('✅ Utilisateurs MongoDB:', usersData.length);
+      } catch (err) {
+        console.error('❌ Erreur utilisateurs:', err.message);
+        // Dernier fallback: /api/debug/users
+        try {
+          const res = await api.get('/debug/users');
+          usersData = res.data?.users || [];
+        } catch {
+          usersData = [];
+        }
       }
       setUsers(usersData);
 
@@ -222,10 +261,11 @@ function Conformite() {
         monthlyData: getLast6Months().map(month => ({ month, count: Math.floor(Math.random() * 20) }))
       });
     } catch (err) {
-      console.error(err);
-      setError('Erreur chargement données');
-      setDemoMode(true);
-      loadMockData();
+      console.error('Erreur globale:', err);
+      setError('Erreur de chargement des données depuis le backend');
+      setConformites([]);
+      setDocuments([]);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -241,81 +281,61 @@ function Conformite() {
       showNotification('Veuillez sélectionner un document', 'error');
       return;
     }
-    if (demoMode) {
-      const newItem = {
-        _id: Date.now().toString(),
-        document: documents.find(d => d._id === newConformite.document),
-        typeControle: newConformite.typeControle,
-        statut: newConformite.statut,
-        dateControle: new Date().toISOString(),
-        commentaire: newConformite.commentaire,
-        verifiePar: { nom: 'Admin' }
-      };
-      setConformites(prev => [newItem, ...prev]);
-      showNotification('✅ Création simulée (mode démo)', 'success');
-      setShowCreateForm(false);
-      setNewConformite({ document: '', typeControle: 'Douane', statut: 'Conforme', commentaire: '' });
-      return;
-    }
-
+    // Création directe via MongoDB API
     try {
       setLoading(true);
-      const payload = { ...newConformite, dateControle: new Date().toISOString() };
+      const payload = {
+        document: newConformite.document,
+        typeControle: newConformite.typeControle,
+        statut: newConformite.statut,
+        commentaire: newConformite.commentaire,
+        dateControle: new Date().toISOString()
+      };
       const response = await api.post('/conformites', payload);
-      setConformites(prev => [response.data, ...prev]);
-      showNotification('✅ Contrôle créé', 'success');
+      console.log('✅ Conformité créée:', response.data);
+      showNotification('✅ Contrôle créé avec succès', 'success');
       setShowCreateForm(false);
       setNewConformite({ document: '', typeControle: 'Douane', statut: 'Conforme', commentaire: '' });
-      fetchData();
+      await fetchData(); // Recharger depuis MongoDB
     } catch (err) {
-      showNotification(err.response?.data?.message || 'Erreur création', 'error');
+      console.error('Erreur création:', err);
+      showNotification(err.response?.data?.message || 'Erreur lors de la création', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleSaveEdit = async () => {
-    if (demoMode) {
-      setConformites(prev => prev.map(c => 
-        c._id === selectedConformite._id 
-          ? { ...c, commentaire: formData.commentaire, statut: formData.statut }
-          : c
-      ));
-      showNotification('✅ Modification simulée', 'success');
-      setShowModal(false);
-      setEditMode(false);
-      return;
-    }
-
+    // Modification directe via MongoDB API
     try {
-      await api.patch(`/conformites/${selectedConformite._id}`, {
+      setLoading(true);
+      const response = await api.patch(`/conformites/${selectedConformite._id}`, {
         commentaire: formData.commentaire,
         statut: formData.statut
       });
-      setConformites(prev => prev.map(c =>
-        c._id === selectedConformite._id ? { ...c, commentaire: formData.commentaire, statut: formData.statut } : c
-      ));
+      console.log('✅ Conformité modifiée:', response.data);
       showNotification('✅ Modification enregistrée', 'success');
       setShowModal(false);
       setEditMode(false);
-    } catch {
-      showNotification('Erreur modification', 'error');
+      await fetchData(); // Recharger depuis MongoDB
+    } catch (err) {
+      console.error('Erreur modification:', err);
+      showNotification(err.response?.data?.message || 'Erreur de modification', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Supprimer ce contrôle ?')) return;
-    if (demoMode) {
-      setConformites(prev => prev.filter(c => c._id !== id));
-      showNotification('✅ Suppression simulée', 'success');
-      return;
-    }
     try {
       await api.delete(`/conformites/${id}`);
       setConformites(prev => prev.filter(c => c._id !== id));
       showNotification('✅ Supprimé', 'success');
-    } catch {
-      showNotification('Erreur suppression', 'error');
+      await fetchData(); // Recharger depuis MongoDB
+    } catch (err) {
+      console.error('Erreur suppression:', err);
+      showNotification(err.response?.data?.message || 'Erreur de suppression', 'error');
     }
   };
 
@@ -506,7 +526,7 @@ function Conformite() {
           <input type="date" value={dateFilter.end} onChange={e => setDateFilter({...dateFilter, end: e.target.value})} />
           <select value={userFilter} onChange={e => setUserFilter(e.target.value)}>
             <option value="">👥 Tous</option>
-            {users.map(u => <option key={u._id} value={u._id}>👤 {u.nom}</option>)}
+            {users.map((u, i) => <option key={u._id || `user-${i}`} value={u._id}>👤 {u.nom || u.email || 'Utilisateur'}</option>)}
           </select>
           {(dateFilter.start || dateFilter.end || userFilter) && (
             <button className="clear-filters-btn" onClick={() => { setDateFilter({start:'', end:''}); setUserFilter(''); }}>🧹 Effacer</button>
@@ -575,7 +595,7 @@ function Conformite() {
             <div className="modal-header"><h3>➕ Nouveau contrôle</h3><button className="modal-close" onClick={() => setShowCreateForm(false)}>✕</button></div>
             <form onSubmit={handleCreateConformite}>
               <div className="modal-body">
-                <div className="form-group"><label>Document *</label><select required value={newConformite.document} onChange={e => setNewConformite({...newConformite, document: e.target.value})}><option value="">Sélectionner</option>{documents.map(d => <option key={d._id} value={d._id}>{d.type} {d.numero}</option>)}</select></div>
+                <div className="form-group"><label>Document *</label><select required value={newConformite.document} onChange={e => setNewConformite({...newConformite, document: e.target.value})}><option value="">Sélectionner</option>{documents.map((d, i) => <option key={d._id || `doc-${i}`} value={d._id}>{d.type} {d.numero}</option>)}</select></div>
                 <div className="form-group"><label>Type *</label><select value={newConformite.typeControle} onChange={e => setNewConformite({...newConformite, typeControle: e.target.value})}><option value="Douane">🛃 Douane</option><option value="Qualité">✅ Qualité</option><option value="Sécurité">🔒 Sécurité</option></select></div>
                 <div className="form-group"><label>Statut *</label><select value={newConformite.statut} onChange={e => setNewConformite({...newConformite, statut: e.target.value})}><option value="Conforme">✅ Conforme</option><option value="Non conforme">❌ Non conforme</option></select></div>
                 <div className="form-group"><label>Commentaire</label><textarea value={newConformite.commentaire} onChange={e => setNewConformite({...newConformite, commentaire: e.target.value})} rows="3" /></div>

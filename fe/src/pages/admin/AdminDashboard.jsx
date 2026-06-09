@@ -9,6 +9,8 @@ import {
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import '../../css/Dashboard.css';
 
 ChartJS.register(
@@ -379,18 +381,98 @@ const AdminDashboard = () => {
       }))), 'Cabotage STIR');
     }
     if (wb.SheetNames.length)
-      saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }), `ETAP_Dashboard_${suffix}.xlsx`);
+      saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/octet-stream' }), `SMART-TRADE_360_Dashboard_${suffix}.xlsx`);
     else alert('Aucune donnée');
   }, [ventesFiltrees, cabotagesFiltres, suffix]);
 
-  const exportCSV = useCallback((type) => {
-    const list = type === 'ventes'
-      ? ventesFiltrees.map(v => ({ Numero: v.numeroVente, Date: formatDate(v.dateVente), Client: getClientName(v), Produit: getProductName(v), Quantite_m3: v.quantite, Prix_DT: v.prixUnitaire, Montant_DT: v.montantTotal, Statut: getStatusInfo(v.statut).text }))
-      : cabotagesFiltres.map(c => ({ Numero: c.numeroCabotage, Date: formatDate(c.dateOperation), Client: getClientName(c), Origine: c.origine, Destination: c.destination, Quantite_m3: c.quantite, Navire: getNavireName(c), Statut: getStatusInfo(c.statut).text }));
-    if (!list.length) { alert('Aucune donnée'); return; }
-    const headers = Object.keys(list[0]);
-    const rows = [headers.join(','), ...list.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(','))];
-    saveAs(new Blob(['﻿' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' }), `${type === 'ventes' ? 'Ventes_STEG' : 'Cabotage_STIR'}_${suffix}.csv`);
+  // Export PDF (au lieu de CSV)
+  const exportPDF = useCallback((type) => {
+    const list = type === 'ventes' ? ventesFiltrees : cabotagesFiltres;
+    if (!list.length) { alert('Aucune donnée à exporter'); return; }
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageW = 297;
+    const marginX = 15;
+    let y = 18;
+
+    // Titre
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(12, 44, 92);
+    const titre = type === 'ventes' ? 'RAPPORT DES VENTES SMART-TRADE 360' : 'RAPPORT CABOTAGE SMART-TRADE 360';
+    doc.text(titre, pageW / 2, y, { align: 'center' });
+
+    y += 8;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Periode: ${suffix}`, pageW / 2, y, { align: 'center' });
+
+    y += 6;
+    doc.setDrawColor(180, 200, 220);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 8;
+
+    if (type === 'ventes') {
+      const head = [['N°', 'Date', 'Client', 'Produit', 'Qte (m3)', 'Prix (DT)', 'Montant (DT)', 'Statut']];
+      const body = ventesFiltrees.map(v => [
+        v.numeroVente || 'N/A',
+        formatDate(v.dateVente),
+        getClientName(v),
+        getProductName(v),
+        (v.quantite || 0).toString(),
+        (v.prixUnitaire || 0).toFixed(2),
+        (v.montantTotal || 0).toFixed(2),
+        getStatusInfo(v.statut).text
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head, body,
+        theme: 'striped',
+        headStyles: { fillColor: [12, 44, 92], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8 },
+        margin: { left: marginX, right: marginX },
+      });
+
+      const total = ventesFiltrees.reduce((s, v) => s + (v.montantTotal || 0), 0);
+      const finalY = doc.lastAutoTable.finalY + 10;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(12, 44, 92);
+      doc.text(`TOTAL VENTES: ${total.toFixed(2)} DT`, pageW - marginX, finalY, { align: 'right' });
+    } else {
+      const head = [['N°', 'Date', 'Client', 'Origine', 'Destination', 'Qte (m3)', 'Navire', 'Statut']];
+      const body = cabotagesFiltres.map(c => [
+        c.numeroCabotage || 'N/A',
+        formatDate(c.dateOperation),
+        getClientName(c),
+        c.origine || 'N/A',
+        c.destination || 'N/A',
+        (c.quantite || 0).toString(),
+        getNavireName(c),
+        getStatusInfo(c.statut).text
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head, body,
+        theme: 'striped',
+        headStyles: { fillColor: [12, 44, 92], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8 },
+        margin: { left: marginX, right: marginX },
+      });
+    }
+
+    // Pied de page
+    const pageH = doc.internal.pageSize.getHeight();
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Genere le ${new Date().toLocaleDateString('fr-FR')} - SMART-TRADE 360°`,
+             pageW / 2, pageH - 8, { align: 'center' });
+
+    const fileName = `${type === 'ventes' ? 'Ventes_STEG' : 'Cabotage_STIR'}_SMART-TRADE-360_${suffix}.pdf`;
+    doc.save(fileName);
   }, [ventesFiltrees, cabotagesFiltres, suffix]);
 
   // ── Rendu ────────────────────────────────────────────────────
@@ -410,7 +492,7 @@ const AdminDashboard = () => {
 
       {/* ── En-tête ──────────────────────────────────────────── */}
       <div className="dashboard-header">
-        <h1>📊 Dashboard Administrateur ETAP</h1>
+        <h1>📊 Dashboard Administrateur SMART-TRADE 360°</h1>
         <p>Ventes STEG &amp; Cabotage STIR — Période : <strong>{periodText}</strong></p>
       </div>
 
@@ -454,8 +536,8 @@ const AdminDashboard = () => {
         <button className="btn-export"     onClick={exportVentes}>📎 Ventes (Excel)</button>
         <button className="btn-export"     onClick={exportCabotages}>📎 Cabotage (Excel)</button>
         <button className="btn-export-all" onClick={exportAll}>📊 Tout (Excel)</button>
-        <button className="btn-export-csv" onClick={() => exportCSV('ventes')}>📄 Ventes (CSV)</button>
-        <button className="btn-export-csv" onClick={() => exportCSV('cabotages')}>📄 Cabotage (CSV)</button>
+        <button className="btn-export-pdf" onClick={() => exportPDF('ventes')}>📄 Ventes (PDF)</button>
+        <button className="btn-export-pdf" onClick={() => exportPDF('cabotages')}>📄 Cabotage (PDF)</button>
         <button className="btn-export" style={{ marginLeft: 'auto' }} onClick={fetchAll}>🔄 Actualiser</button>
       </div>
 

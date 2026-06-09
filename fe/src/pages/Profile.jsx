@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getToken, logout } from '../utils/auth';
+import { QRCodeSVG } from 'qrcode.react';
 import '../css/Profile.css';
 
 // ── Configuration par rôle ─────────────────────────────────────
@@ -10,7 +11,7 @@ const ROLE_CONFIG = {
     icon:        '👑',
     label:       'Administrateur',
     color:       'role-admin',
-    description: 'Accès complet à toutes les fonctionnalités de la plateforme ETAP.',
+    description: 'Accès complet à toutes les fonctionnalités de la plateforme SMART-TRADE 360°.',
     permissions: [
       'Gestion des utilisateurs',
       'Gestion des tiers (Clients & Fournisseurs)',
@@ -84,7 +85,7 @@ const ROLE_CONFIG = {
     icon:        '💼',
     label:       'Commercial',
     color:       'role-commercial',
-    description: 'Gestion des contrats, commandes et relations clients ETAP.',
+    description: 'Gestion des contrats, commandes et relations clients SMART-TRADE 360°.',
     permissions: [
       'Gestion des contrats de vente',
       'Suivi des commandes clients',
@@ -155,14 +156,14 @@ const ROLE_CONFIG = {
     icon:        '🏢',
     label:       'Client',
     color:       'role-client',
-    description: 'Accès à vos commandes, livraisons et factures ETAP.',
+    description: 'Accès à vos commandes, livraisons et factures SMART-TRADE 360°.',
     permissions: [
       'Consultation du catalogue produits',
       'Passage de commandes',
       'Suivi des livraisons en temps réel',
       'Consultation des factures',
       'Téléchargement des reçus',
-      'Assistant virtuel ETAP',
+      'Assistant virtuel SMART-TRADE 360°',
     ],
     stats: [
       { icon: '🛒', label: 'Commandes totales',   key: 'commandes', demo: 12 },
@@ -223,7 +224,7 @@ const ROLE_CONFIG = {
     icon:        '🚛',
     label:       'Transporteur',
     color:       'role-transporteur',
-    description: 'Gestion et suivi de vos missions de livraison ETAP.',
+    description: 'Gestion et suivi de vos missions de livraison SMART-TRADE 360°.',
     permissions: [
       'Consultation des livraisons assignées',
       'Mise à jour du statut de livraison',
@@ -289,12 +290,12 @@ const ROLE_CONFIG = {
     icon:        '🏭',
     label:       'Fournisseur',
     color:       'role-fournisseur',
-    description: 'Gestion de vos commandes reçues et livraisons sortantes ETAP.',
+    description: 'Gestion de vos commandes reçues et livraisons sortantes SMART-TRADE 360°.',
     permissions: [
       'Consultation des commandes reçues',
       'Gestion des livraisons',
       'Consultation des factures fournisseur',
-      'Tiers partenaires ETAP',
+      'Tiers partenaires SMART-TRADE 360°',
     ],
     stats: [
       { icon: '📦', label: 'Commandes reçues',    key: 'commandes', demo: 15  },
@@ -354,12 +355,7 @@ const ROLE_CONFIG = {
   },
 };
 
-// ── Générer un QR code fictif (base64 SVG) ─────────────────────
-const generateQRCode = (text) => {
-  // Utiliser une API publique pour générer un QR code
-  // Exemple: https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<TEXT>
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
-};
+// ── QR Code généré localement (sans service externe) ──────────
 
 // ── Composant principal ────────────────────────────────────────
 function Profile() {
@@ -443,13 +439,18 @@ function Profile() {
               <h3>{qrModal.title}</h3>
             </div>
             <div className="qr-modal-body">
-              <img
-                src={generateQRCode(token || `etap://${qrModal.id}/${role.toLowerCase()}`)}
-                alt={qrModal.title}
-                className="qr-code-image"
-              />
+              <div className="qr-code-image" style={{ display: 'flex', justifyContent: 'center', padding: '12px', background: '#fff', borderRadius: '12px', border: '1px solid #e4edf7' }}>
+                <QRCodeSVG
+                  value={token || `etap://${qrModal.id}/${role.toLowerCase()}`}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#0d2b3e"
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
               <p className="qr-modal-instruction">
-                Scannez ce code avec votre application mobile ETAP
+                Scannez ce code avec votre application mobile SMART-TRADE 360°
               </p>
               <p className="qr-modal-feature">{qrModal.description}</p>
             </div>
@@ -479,7 +480,7 @@ function Profile() {
         </div>
 
         <div className="profile-hero-info">
-          <h1>{formData.nom || user?.pseudo || 'Utilisateur ETAP'}</h1>
+          <h1>{formData.nom || user?.pseudo || 'Utilisateur SMART-TRADE 360°'}</h1>
           <p className="profile-email">{formData.email || '—'}</p>
           <p className="profile-company">
             🛢️ Entreprise Tunisienne d'Activités Pétrolières
@@ -667,25 +668,83 @@ function Profile() {
             </div>
           </div>
 
+          {/* QR CODE ADMIN — carte dédiée */}
+          {role === 'Admin' && (
+            <div className="profile-card profile-qr-admin-card">
+              <div className="profile-card-header">
+                <h2>📱 QR Code d'accès mobile</h2>
+                <span className="profile-perm-count">Connexion rapide</span>
+              </div>
+              <div className="profile-card-body">
+                <div className="admin-qr-wrapper">
+                  <div className="admin-qr-code">
+                    <QRCodeSVG
+                      value={token || `etap://${user?.id || 'admin'}/${role.toLowerCase()}`}
+                      size={160}
+                      bgColor="#ffffff"
+                      fgColor="#0d2b3e"
+                      level="M"
+                      includeMargin={false}
+                    />
+                  </div>
+                  <div className="admin-qr-info">
+                    <p className="admin-qr-title">Code d'accès administrateur</p>
+                    <p className="admin-qr-desc">
+                      Scannez ce QR code depuis l'application mobile SMART-TRADE 360° pour vous connecter
+                      directement en tant qu'administrateur sans saisir vos identifiants.
+                    </p>
+                    <div className="admin-qr-actions">
+                      <button
+                        className="btn-qr"
+                        onClick={() => setQrModal({
+                          id: user?.id || 'admin',
+                          icon: '👑',
+                          title: 'QR Code Administrateur',
+                          description: 'Scannez pour accéder à votre espace Admin sur l\'application mobile SMART-TRADE 360°',
+                        })}
+                      >
+                        🔍 Agrandir
+                      </button>
+                      <button
+                        className="btn-qr-copy"
+                        style={{ padding: '7px 14px', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(token || `etap://${user?.id || 'admin'}/admin`);
+                          alert('Lien copié !');
+                        }}
+                      >
+                        📋 Copier
+                      </button>
+                    </div>
+                    <div className="admin-qr-badge">
+                      <span className="perm-check">✓</span>
+                      <span style={{ fontSize: 12, color: '#1a3c5e', fontWeight: 600 }}>
+                        {token ? 'Token JWT actif — accès sécurisé' : 'Mode démo'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ✅ FONCTIONNALITÉS AVANCÉES - NOUVEAU */}
           {config.features && config.features.length > 0 && (
             <div className="profile-card profile-features-card">
               <div className="profile-card-header">
                 <h2>🚀 Fonctionnalités avancées</h2>
-                {role !== 'Admin' && (
-                  <button
-                    className="btn-qr"
-                    onClick={() => setQrModal({
-                      id: 'app',
-                      icon: '📱',
-                      title: 'Accès Mobile ETAP',
-                      description: `Scannez pour accéder à votre espace ${config.label} sur l'application mobile`,
-                    })}
-                    title="QR Code unique pour l'app mobile"
-                  >
-                    📱 QR Code Mobile
-                  </button>
-                )}
+                <button
+                  className="btn-qr"
+                  onClick={() => setQrModal({
+                    id: 'app',
+                    icon: '📱',
+                    title: 'Accès Mobile SMART-TRADE 360°',
+                    description: `Scannez pour accéder à votre espace ${config.label} sur l'application mobile`,
+                  })}
+                  title="QR Code unique pour l'app mobile"
+                >
+                  📱 QR Code Mobile
+                </button>
               </div>
               <div className="profile-card-body">
                 <div className="features-grid">

@@ -1,58 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const tiersSchema = new mongoose.Schema({
-  raisonSociale: {
-    type: String,
-    required: [true, 'La raison sociale est requise'],
-    trim: true
-  },
-  code: {
-    type: String,
-    required: [true, 'Le code est requis'],
-    unique: true,
-    trim: true,
-    uppercase: true
-  },
+  raisonSociale: { type: String, required: true },
+  code: { type: String, required: true, unique: true },
   type: {
-    type: Number,
-    enum: [0, 1],
-    required: true,
-    default: 0,
-    comment: '0 = Client, 1 = Fournisseur'
-  },
-  matriculeFiscale: {
     type: String,
-    trim: true,
-    uppercase: true
+    enum: ['Client', 'Fournisseur', 'Transporteur'],
+    required: true
   },
-  adresse: {
-    type: String,
-    default: ''
-  },
-  telephone: {
-    type: String,
-    default: ''
-  },
-  email: {
-    type: String,
-    lowercase: true,
-    trim: true
-  },
-  responsable: {
-    type: String,
-    default: ''
-  },
-  actif: {
-    type: Boolean,
-    default: true
-  },
-  role: { type: String, enum: [ 'Fournisseur', 'Client']
-
-   },
-   nom:String
-
-}, {
-  timestamps: true
+  email: { type: String },
+  telephone: { type: String },
+  adresse: { type: String }
 });
 
-module.exports = mongoose.model('Tiers', tiersSchema);
+module.exports = mongoose.models.Tiers || mongoose.model('Tiers', tiersSchema);

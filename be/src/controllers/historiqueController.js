@@ -1,6 +1,85 @@
 // pfe/be/src/controllers/historiqueController.js
-const Historique = require('../models/Historique');
+const Emission = require("../models/Emission");
+const Contrat = require("../models/Contrat");
+const ContratVente = require("../models/ContratVente");
+const Notification = require("../models/Notification");
+const Penalty = require("../models/Penalty");
+const Product = require("../models/Product");
+const Stock = require("../models/Stock");
+const User = require("../models/User");
+const Vente = require("../models/Vente");
 
+const safe = async (fn) => {
+  try { return await fn(); } catch { return 0; }
+};
+
+// GET /api/historique/stats
+exports.getStats = async (req, res) => {
+  try {
+    const uid = req.user._id;
+    const [
+      totalEmissions, totalContrats, totalStock, totalProducts,
+      totalUsers, totalVentes, totalContratsVente,
+      unreadNotifications, totalPenalties
+    ] = await Promise.all([
+      safe(() => Emission.countDocuments()),
+      safe(() => Contrat.countDocuments()),
+      safe(() => Stock.countDocuments()),
+      safe(() => Product.countDocuments()),
+      safe(() => User.countDocuments()),
+      safe(() => Vente.countDocuments()),
+      safe(() => ContratVente.countDocuments()),
+      safe(() => Notification.countDocuments({
+        userId: uid,
+        $or: [{ read: false }, { isRead: false }]
+      })),
+      safe(() => Penalty.countDocuments({ userId: uid, statut: 'en_attente' }))
+    ]);
+
+    res.json({
+      totalEmissions, totalContrats, totalStock, totalProducts,
+      totalUsers, totalVentes, totalContratsVente,
+      unreadNotifications, totalPenalties
+    });
+  } catch (err) {
+    console.error('historique/stats error:', err.message);
+    res.json({
+      totalEmissions: 0, totalContrats: 0, totalStock: 0,
+      totalProducts: 0, totalUsers: 0, totalVentes: 0,
+      totalContratsVente: 0, unreadNotifications: 0, totalPenalties: 0
+    });
+  }
+};
+
+// GET /api/historique/pagine
+exports.getPagine = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, model = 'Emission' } = req.query;
+
+    let Model;
+    switch (model) {
+      case 'Emission': Model = Emission; break;
+      case 'Contrat': Model = Contrat; break;
+      case 'ContratVente': Model = ContratVente; break;
+      default: Model = Emission;
+    }
+
+    const data = await Model.find()
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await Model.countDocuments();
+
+    res.json({
+      success: true, data, total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit))
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // Récupérer tout l'historique (admin seulement)
 const getAllHistorique = async (req, res) => {
   try {

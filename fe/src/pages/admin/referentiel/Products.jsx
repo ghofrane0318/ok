@@ -153,9 +153,37 @@ const Products = () => {
         return;
       }
       
-      const response = await axios.get('http://localhost:5001/api/users', config);
-      const clientsData = response.data.data || response.data || [];
-      const filteredClients = clientsData.filter(u => u.role === 'Client');
+      // Essayer /api/users d'abord, fallback sur /api/debug/users
+      let clientsData = [];
+      try {
+        const response = await axios.get('http://localhost:5001/api/users', config);
+        clientsData = response.data.data || response.data?.users || response.data || [];
+        console.log('📥 /api/users data:', clientsData);
+      } catch (e1) {
+        console.warn('⚠️ /api/users a échoué, essai /api/debug/users');
+        const response2 = await axios.get('http://localhost:5001/api/debug/users');
+        clientsData = response2.data?.users || [];
+        console.log('📥 /api/debug/users data:', clientsData);
+      }
+
+      // Filtre permissif: role "Client" (case-insensitive), _id ou id présent
+      const filteredClients = clientsData
+        .filter(u => {
+          const role = String(u.role || '').toLowerCase();
+          return role === 'client' && (u._id || u.id);
+        })
+        .map(u => ({
+          ...u,
+          _id: u._id || u.id  // ✅ Normaliser sur _id
+        }));
+
+      console.log('✅ Clients filtrés:', filteredClients.length);
+      console.log('📋 Liste:', filteredClients.map(c => ({
+        _id: c._id,
+        email: c.email,
+        role: c.role
+      })));
+
       setClients(filteredClients);
       saveMockData(STORAGE_KEY_CLIENTS, clientsData);
     } catch (error) {
@@ -309,31 +337,64 @@ const Products = () => {
       }
 
       // Mode API
-      const productToSend = {
-        nom: productForm.nom.trim(),
-        type: productForm.type,
-        description: productForm.description || '',
-        unite: productForm.unite,
-        prixUnitaire: parseFloat(productForm.prixUnitaire),
-        stockInitial: parseInt(productForm.stockInitial) || 0,
-        category: productForm.category || 'Autre'
+      // Mapper l'unité vers l'enum backend ['Litres', 'Barils', 'm³', 'Tonnes']
+      const mapUniteMesure = (unite) => {
+        const u = String(unite || '').toLowerCase();
+        if (u.includes('l') || u === 'litre' || u === 'litres') return 'Litres';
+        if (u.includes('bbl') || u.includes('baril')) return 'Barils';
+        if (u.includes('m³') || u.includes('m3')) return 'm³';
+        if (u.includes('t') || u.includes('tonne') || u === 'kg') return 'Tonnes';
+        return 'Litres'; // Par défaut
       };
 
+      // Générer un codeProduit GARANTI unique avec UUID-like
+      const generateUniqueCode = (nom, type) => {
+        const prefix = type === 'STEG' ? 'STEG' : 'STIR';
+        const cleanNom = nom.replace(/[^a-zA-Z0-9]/g, '').substring(0, 5).toUpperCase() || 'PROD';
+        // UUID-like: timestamp microseconde + 2 randoms = 13+6+6 caractères
+        const uniqueId = `${Date.now()}${Math.random().toString(36).substring(2, 10).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        return `${prefix}-${cleanNom}-${uniqueId}`;
+      };
+
+      const productToSend = {
+        nom: productForm.nom.trim(),
+        type: productForm.type || 'STEG',
+        description: productForm.description || '',
+        unite: productForm.unite || 'm³',
+        uniteMesure: mapUniteMesure(productForm.unite),  // ✅ Champ enum requis
+        prixUnitaire: parseFloat(productForm.prixUnitaire),
+        stockInitial: parseInt(productForm.stockInitial) || 0,
+        category: productForm.category || 'Autre',
+        codeProduit: editingProduct ? undefined : generateUniqueCode(productForm.nom, productForm.type)  // ✅ Code unique
+      };
+
+      console.log('📤 Produit envoyé:', productToSend);
+
       if (editingProduct) {
-        await axios.put(`http://localhost:5001/api/products/${editingProduct._id}`, productToSend, config);
+        const response = await axios.put(`http://localhost:5001/api/products/${editingProduct._id}`, productToSend, config);
+        console.log('✅ Produit modifié:', response.data);
         toast.success('Produit modifié avec succès');
       } else {
-        await axios.post('http://localhost:5001/api/products', productToSend, config);
+        const response = await axios.post('http://localhost:5001/api/products', productToSend, config);
+        console.log('✅ Produit créé:', response.data);
         toast.success('Produit créé avec succès');
       }
-      
+
       setShowProductModal(false);
       resetProductForm();
       await fetchProduits();
-      
+
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error(error.response?.data?.message || 'Erreur lors de la sauvegarde');
+      console.error('❌ Erreur création produit:', error);
+      console.error('❌ Réponse backend:', error.response?.data);
+
+      let errorMessage = 'Erreur lors de la sauvegarde';
+      if (error.response?.data?.errors) {
+        errorMessage = Object.values(error.response.data.errors).join(', ');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -383,7 +444,8 @@ const Products = () => {
       return;
     }
     
-    if (quantite > selectedProduit.stockInitial) {
+    // Vérifier le stock seulement si stockInitial > 0
+    if (selectedProduit.stockInitial > 0 && quantite > selectedProduit.stockInitial) {
       toast.error(`Quantité disponible: ${selectedProduit.stockInitial} ${selectedProduit.unite}`);
       return;
     }
@@ -445,18 +507,32 @@ const Products = () => {
         return;
       }
 
-      await axios.post('http://localhost:5001/api/contrats-vente', contratData, config);
-      
-      toast.success('Contrat créé avec succès');
+      console.log('📤 Payload envoyé:', contratData);
+      const response = await axios.post('http://localhost:5001/api/contrats-vente', contratData, config);
+      console.log('✅ Contrat créé:', response.data);
+
+      toast.success('✅ Contrat créé avec succès');
       setShowContratModal(false);
       setSelectedProduit(null);
       await Promise.all([fetchProduits(), fetchContrats()]);
-      
+
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('❌ Erreur création contrat:', error);
+      console.error('❌ Réponse backend:', error.response?.data);
+
       let errorMessage = 'Erreur lors de la création du contrat';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 400) {
+        // Détails des erreurs de validation Mongoose
+        const errors = error.response?.data?.errors;
+        if (errors) {
+          errorMessage = Object.values(errors).map(e => e.message || e).join(', ');
+        } else {
+          errorMessage = 'Données invalides. Vérifiez les champs.';
+        }
       }
       toast.error(errorMessage);
     } finally {
@@ -767,16 +843,35 @@ const Products = () => {
                 <label>Client *</label>
                 <select name="client" required defaultValue="">
                   <option value="" disabled>Sélectionner un client</option>
-                  {clients.map(c => (
-                    <option key={c._id} value={c._id}>{c.nom || c.raisonSociale} ({c.email})</option>
-                  ))}
+                  {clients.length === 0 ? (
+                    <option value="" disabled>⚠️ Aucun client disponible</option>
+                  ) : (
+                    clients.map((c, i) => (
+                      <option key={c._id || `client-${i}`} value={c._id || ''}>
+                        {c.raisonSociale || c.nom || c.email} {c.email && `(${c.email})`}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
                   <label>Quantité *</label>
-                  <input type="number" name="quantite" step="0.01" required placeholder={`Max: ${selectedProduit.stockInitial}`} min="0.01" max={selectedProduit.stockInitial} />
+                  <input
+                    type="number"
+                    name="quantite"
+                    step="0.01"
+                    required
+                    placeholder={`Stock dispo: ${selectedProduit.stockInitial || 'illimité'}`}
+                    min="0.01"
+                    max={selectedProduit.stockInitial > 0 ? selectedProduit.stockInitial : undefined}
+                  />
+                  {selectedProduit.stockInitial === 0 && (
+                    <small style={{ color: '#dc2626', display: 'block', marginTop: '4px' }}>
+                      ⚠️ Stock épuisé - veuillez d'abord réapprovisionner ce produit
+                    </small>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Date début *</label>

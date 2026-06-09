@@ -1,32 +1,20 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const conformiteSchema = new mongoose.Schema({
-  document: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Document', 
-    required: true 
+  document: { type: String, required: true },
+  typeControle: {
+    type: String,
+    enum: ['Douane', 'Qualité', 'Sécurité'],
+    default: 'Douane'
   },
-  typeControle: { 
-    type: String, 
-    enum: ['Douane', 'Qualité', 'Sécurité'], 
-    required: true 
+  statut: {
+    type: String,
+    enum: ['Conforme', 'Non conforme', 'En attente'],
+    default: 'En attente'
   },
-  statut: { 
-    type: String, 
-    enum: ['Conforme', 'Non conforme'], 
-    required: true 
-  },
-  dateControle: { 
-    type: Date, 
-    default: Date.now 
-  },
-  commentaire: { 
-    type: String 
-  },
-  verifiePar: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
-  }
-}, { timestamps: true });
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  verification: { type: Date, default: Date.now },
+  commentaire: { type: String }
+});
 
-module.exports = mongoose.model('Conformite', conformiteSchema);
+module.exports = mongoose.models.Conformite || mongoose.model('Conformite', conformiteSchema);

@@ -111,8 +111,21 @@ export default function Users() {
       setForm({ nom: '', prenom: '', email: '', role: 'Client', motDePasse: '', code: '', adresse: '', telephone: '' });
       fetchUsers();
     } catch (error) {
-      console.error('Erreur save:', error);
-      addToast(error.response?.data?.message || 'Une erreur est survenue', 'error');
+      console.error('❌ Erreur save:', error);
+      console.error('❌ Réponse backend:', error.response?.data);
+
+      let errorMessage = 'Une erreur est survenue';
+      if (error.response?.data?.errors) {
+        // Erreurs de validation Mongoose
+        errorMessage = Object.values(error.response.data.errors).map(e => e.message || e).join(', ');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Données invalides. Vérifiez tous les champs.';
+      } else if (error.response?.status === 409) {
+        errorMessage = 'Cet email existe déjà.';
+      }
+      addToast(errorMessage, 'error');
     }
   };
 

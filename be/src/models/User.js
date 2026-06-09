@@ -2,40 +2,51 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+
 const userSchema = new mongoose.Schema({
-  nom: { type: String, required: true, trim: true },
-  prenom: { type: String, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  password: { type: String, required: true, minlength: 6 },
-  telephone: { type: String, trim: true },
-  adresse: { type: String, trim: true },
+  raisonSociale: { type: String },
+  nom: { type: String },
+  prenom: { type: String },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  motDePasse: { type: String },
   role: {
     type: String,
-    enum: ['Admin', 'Commercial', 'Client', 'Transporteur', 'Fournisseur'],
-    default: 'Client'
+    enum: ['Admin', 'Commercial', 'Transporteur', 'Fournisseur', 'Client'],
+    default: 'Commercial'
   },
-  raisonSociale: { type: String, trim: true },
   code: { type: String, unique: true, sparse: true },
+  adresse: { type: String },
+  telephone: { type: String },
   actif: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
   lastLogin: { type: Date },
-  deviceToken: { type: String },
   resetPasswordCode: { type: String },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
-  resetPasswordVerified: { type: Boolean }
-}, {
-  timestamps: true
+  resetPasswordVerified: { type: Boolean },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12);
+userSchema.pre('validate', function(next) {
+  if (!this.password && this.motDePasse) this.password = this.motDePasse;
   next();
 });
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+userSchema.pre('save', async function(next) {
+  const passwordToHash = this.password || this.motDePasse;
+  if (this.isModified('password') || this.isModified('motDePasse')) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(passwordToHash, salt);
+    this.motDePasse = this.password;
+  }
+  this.updatedAt = Date.now();
+  next();
+});
+
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password || this.motDePasse);
 };
 
 userSchema.methods.generateToken = function () {
@@ -67,4 +78,4 @@ userSchema.methods.updateLastLogin = async function () {
   await this.save();
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

@@ -7,6 +7,115 @@ const TypeFacture = require('../models/TypeFacture');
 const pdfGenerator = require('../utils/pdfGenerator');
 const { addHistorique } = require("./historiqueController");
 
+// GET /api/factures/:id/pdf
+exports.generatePDF = async (req, res) => {
+  try {
+    const facture = await Facture.findById(req.params.id)
+      .populate('typeFacture')
+      .populate('contrat')
+      .populate('client')
+      .lean();
+
+    if (!facture) {
+      return res.status(404).json({ success: false, message: 'Facture introuvable' });
+    }
+
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition',
+      `attachment; filename="facture_${facture.numeroFacture || facture._id}.pdf"`
+    );
+
+    doc.pipe(res);
+
+    doc.fontSize(24).fillColor('#0a2540').font('Helvetica-Bold')
+       .text('FACTURE', { align: 'center' });
+    doc.moveDown(0.5);
+
+    doc.fontSize(12).fillColor('#666').font('Helvetica')
+       .text(facture.numeroFacture || facture._id.toString(), { align: 'center' });
+    doc.moveDown(1.5);
+
+    doc.strokeColor('#dbe5f5').lineWidth(1)
+       .moveTo(50, doc.y).lineTo(545, doc.y).stroke();
+    doc.moveDown(1);
+
+    doc.fontSize(13).fillColor('#0a2540').font('Helvetica-Bold')
+       .text('INFORMATIONS FACTURE');
+    doc.moveDown(0.3);
+    doc.fontSize(11).fillColor('#333').font('Helvetica');
+
+    const infos = [
+      ['Numéro:', facture.numeroFacture || 'N/A'],
+      ['Type:', facture.typeFacture?.nom || 'N/A'],
+      ['Date:', facture.dateCreation ? new Date(facture.dateCreation).toLocaleDateString('fr-FR') : 'N/A'],
+      ['Date échéance:', facture.dateEcheance ? new Date(facture.dateEcheance).toLocaleDateString('fr-FR') : 'N/A'],
+      ['Client:', facture.client?.raisonSociale || facture.client?.nom || 'N/A'],
+      ['Statut:', facture.statut || 'En attente'],
+      ['Montant HT:', `${(facture.montantHT || 0).toFixed(2)} TND`],
+      ['TVA:', `${facture.tva || 19} %`],
+      ['Montant TTC:', `${(facture.montantTTC || 0).toFixed(2)} TND`]
+    ];
+
+    infos.forEach(([label, value]) => {
+      doc.font('Helvetica-Bold').text(label, 50, doc.y, { continued: true, width: 150 });
+      doc.font('Helvetica').text(`  ${value}`);
+      doc.moveDown(0.4);
+    });
+
+    doc.moveDown(2);
+
+    doc.fontSize(9).fillColor('#999').font('Helvetica')
+       .text(
+         `Généré le ${new Date().toLocaleDateString('fr-FR')} - ETAP`,
+         50, 770, { align: 'center', width: 495 }
+       );
+
+    doc.end();
+  } catch (err) {
+    console.error('Erreur GET /api/factures/:id/pdf:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+};
+
+// PATCH /api/factures/:id/statut
+exports.updateStatut = async (req, res) => {
+  try {
+    const { statut } = req.body;
+    if (!statut) {
+      return res.status(400).json({ success: false, message: 'Statut requis' });
+    }
+
+    const validStatuts = ['En attente', 'Payée', 'Annulée', 'Impayée', 'En retard'];
+    if (!validStatuts.includes(statut)) {
+      return res.status(400).json({
+        success: false,
+        message: `Statut invalide. Valeurs autorisées: ${validStatuts.join(', ')}`
+      });
+    }
+
+    const facture = await Facture.findByIdAndUpdate(
+      req.params.id,
+      { statut, updatedAt: new Date() },
+      { new: true }
+    )
+      .populate('typeFacture')
+      .populate('contrat')
+      .populate('client');
+
+    if (!facture) {
+      return res.status(404).json({ success: false, message: 'Facture introuvable' });
+    }
+
+    res.json({ success: true, data: facture, message: 'Statut mis à jour' });
+  } catch (err) {
+    console.error('Erreur PATCH /api/factures/:id/statut:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 // Obtenir toutes les factures
 exports.getFactures = async (req, res) => {
   try {
@@ -14,7 +123,6 @@ exports.getFactures = async (req, res) => {
       .populate('typeFacture', 'nom devise')
       .populate('contrat', 'numeroContrat')
       .populate('commande', 'numeroCommande')
-      .populate('livraison', 'numeroLivraison')
       .sort({ dateCreation: -1 });
     res.json(factures);
   } catch (err) {
@@ -28,8 +136,7 @@ exports.getFactureById = async (req, res) => {
     const facture = await Facture.findById(req.params.id)
       .populate('typeFacture', 'nom devise')
       .populate('contrat', 'numeroContrat client')
-      .populate('commande', 'numeroCommande')
-      .populate('livraison', 'numeroLivraison');
+      .populate('commande', 'numeroCommande');
     if (!facture) return res.status(404).json({ message: 'Facture non trouvée' });
     res.json(facture);
   } catch (err) {
@@ -329,9 +436,8 @@ exports.exportFacturePDF = async (req, res) => {
     const facture = await Facture.findById(req.params.id)
       .populate('typeFacture', 'nom devise')
       .populate('contrat', 'numeroContrat')
-      .populate('commande', 'numeroCommande')
-      .populate('livraison', 'numeroLivraison');
-    
+      .populate('commande', 'numeroCommande');
+
     if (!facture) {
       return res.status(404).json({ message: 'Facture non trouvée' });
     }

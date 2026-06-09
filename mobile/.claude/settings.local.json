@@ -1,31 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(npm show \"expo@55\" peerDependencies 2>&1)",
-      "Bash(npm install *)",
-      "Bash(Find \"C:\\\\Users\\\\ghfririna\\\\pfe \\(3\\)\\\\pfe\\\\mobile\\\\ETAPMobile\\\\src\" -name \"App.tsx\" -o -name \"index.tsx\" -o -name \"index.ts\")",
-      "Bash(powershell -Command \"Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue; Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue; Write-Host 'Nettoyage OK'\")",
-      "Bash(powershell -Command \"Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue; Remove-Item -Force package-lock.json -ErrorAction SilentlyContinue\")",
-      "Bash(xargs grep -l \"user\\\\|User\")",
-      "Bash(curl -s http://localhost:5001/api/debug/users)",
-      "Bash(curl -s -X POST http://localhost:5001/api/debug/fix-all-passwords)",
-      "Bash(node -e ' *)",
-      "Bash(curl -s http://localhost:5001/api/products?limit=5)",
+      "Bash(xargs -I {} sed -i 's|localhost:5000|localhost:5001|g' \"{}\")",
+      "Bash(npm start *)",
+      "Bash(curl -s -X OPTIONS http://localhost:5001/api/users -H \"Origin: http://localhost:5173\" -I)",
       "Bash(curl -s http://localhost:5001/api/products)",
-      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const j=JSON.parse\\(d\\); j.users.forEach\\(u=>console.log\\(u.email, '|', u.role, '| mdp:', u.hasPassword ? 'OK\\('+u.passwordLength+'\\)' : 'VIDE'\\)\\)\")",
-      "Bash(curl -s -X POST http://localhost:5001/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"Transporteur@etap.com\\\\\",\\\\\"password\\\\\":\\\\\"Etap2024!\\\\\"}\")",
-      "Bash(curl -s -X POST http://localhost:5001/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"Ghofrane899@outlook.fr\\\\\",\\\\\"password\\\\\":\\\\\"Etap2024!\\\\\"}\")",
-      "Bash(curl -s -X POST http://localhost:5001/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"steg12@gmail.com\\\\\",\\\\\"password\\\\\":\\\\\"123456\\\\\"}\")",
-      "Bash(curl -s -X POST http://localhost:5001/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"fournisseur@etap.com\\\\\",\\\\\"password\\\\\":\\\\\"123456\\\\\"}\")",
-      "Bash(curl -s -X POST http://localhost:5001/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"ghofrane899@outlook.fr\\\\\",\\\\\"password\\\\\":\\\\\"123456\\\\\"}\")",
-      "Bash(node -e \"const mongoose = require\\('mongoose'\\); const dotenv = require\\('dotenv'\\); dotenv.config\\(\\); mongoose.connect\\(process.env.MONGO_URI\\).then\\(async \\(\\) => { const Vente = require\\('./src/models/Vente'\\); const Cabotage = require\\('./src/models/Cabotage'\\); const vCount = await Vente.countDocuments\\(\\); const cCount = await Cabotage.countDocuments\\(\\); const v = await Vente.findOne\\(\\).lean\\(\\); const c = await Cabotage.findOne\\(\\).lean\\(\\); console.log\\('Ventes:', vCount, '| dateVente sample:', v?.dateVente\\); console.log\\('Cabotages:', cCount, '| dateChargement sample:', c?.dateChargement\\); mongoose.disconnect\\(\\); }\\).catch\\(e => console.error\\(e\\)\\);\")",
-      "Bash(node -e \"const mongoose = require\\('mongoose'\\); const dotenv = require\\('dotenv'\\); dotenv.config\\(\\); mongoose.connect\\(process.env.MONGO_URI\\).then\\(async \\(\\) => { const Cabotage = require\\('./src/models/Cabotage'\\); const docs = await Cabotage.find\\(\\).limit\\(3\\).lean\\(\\); console.log\\(JSON.stringify\\(docs.map\\(d => Object.keys\\(d\\)\\), null, 2\\)\\); console.log\\('First doc:', JSON.stringify\\(docs[0], null, 2\\)\\); mongoose.disconnect\\(\\); }\\).catch\\(e => console.error\\(e\\)\\);\")",
-      "Bash(node -e \"const mongoose = require\\('mongoose'\\); const dotenv = require\\('dotenv'\\); dotenv.config\\(\\); mongoose.connect\\(process.env.MONGO_URI\\).then\\(async \\(\\) => { const Vente = require\\('./src/models/Vente'\\); const docs = await Vente.find\\(\\).limit\\(2\\).lean\\(\\); console.log\\(JSON.stringify\\(docs, null, 2\\)\\); mongoose.disconnect\\(\\); }\\).catch\\(e => console.error\\(e\\)\\);\")",
-      "Bash(node -e \"const mongoose = require\\('mongoose'\\); const dotenv = require\\('dotenv'\\); dotenv.config\\(\\); mongoose.connect\\(process.env.MONGO_URI\\).then\\(async \\(\\) => { const Vente = require\\('./src/models/Vente'\\); const Cabotage = require\\('./src/models/Cabotage'\\); const ventes = await Vente.find\\(\\).lean\\(\\); const cabotages = await Cabotage.find\\(\\).lean\\(\\); console.log\\('=== VENTES ==='\\); ventes.forEach\\(v => console.log\\(v.numeroVente, '|', v.dateVente, '|', new Date\\(v.dateVente\\).getFullYear\\(\\)\\)\\); console.log\\('=== CABOTAGES ==='\\); cabotages.forEach\\(c => console.log\\(c.numeroCabotage, '|', c.dateOperation, '|', new Date\\(c.dateOperation\\).getFullYear\\(\\)\\)\\); mongoose.disconnect\\(\\); }\\).catch\\(e => console.error\\(e\\)\\);\")",
-      "Bash(node --input-type=module)",
-      "Bash(npx --yes acorn --ecma2020 --module src/pages/Factures.jsx)",
-      "Bash(node -e \"require\\('fs'\\).readFileSync\\('src/pages/Factures.jsx','utf8'\\); console.log\\('read ok'\\)\")",
-      "Bash(xargs sed -i 's/#2c5f8a/#1a3c5e/g')"
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5001\")",
+      "Bash(curl -s -X PATCH http://localhost:5001/api/livraisons/test/etat -H \"Content-Type: application/json\" -d '{\"etat\":\"En cours\"}')",
+      "PowerShell($utf8 = New-Object System.Text.UTF8Encoding\\($false\\); $file = \"C:\\\\Users\\\\ghfririna\\\\pfe \\(3\\)\\\\pfe\\\\fe\\\\src\\\\pages\\\\transporteur\\\\TransporteurLivraions.jsx\"; $lines = [System.IO.File]::ReadAllLines\\($file, $utf8\\); $newLines = $lines[0..5] + $lines[211..\\($lines.Length - 1\\)]; [System.IO.File]::WriteAllLines\\($file, $newLines, $utf8\\); \"Lignes 8-210 supprimées \\(MOCK_LIVRAISONS\\)\")",
+      "Bash(curl -s http://localhost:5001/api/livraisons)",
+      "Bash(curl -s http://localhost:5001/api/debug/users)",
+      "Bash(curl -s http://localhost:5001/api/factures)",
+      "Bash(curl -s http://localhost:5001/api/conformites)",
+      "Bash(grep -n \"produits.map\\\\|\\\\.map\\(.*=>.*\\(\\\\|\\\\.map\\(.*=>$\" \"C:\\\\Users\\\\ghfririna\\\\pfe \\(3\\)\\\\pfe\\\\fe\\\\src\\\\pages\\\\admin\\\\referentiel\\\\Products.jsx\")",
+      "Bash(curl -s http://localhost:5001/api/users)",
+      "Bash(ping -n 2 google.com)",
+      "Bash(nslookup ac-rhrbate-shard-00-01.j9gyxdb.mongodb.net 8.8.8.8)"
     ]
   }
 }

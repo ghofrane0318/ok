@@ -21,5 +21,5 @@ router.patch('/:id/deactivate', protect, authorizeRoles('Admin'), userController
 router.get('/:id/profile', protect, authorizeRoles('Admin'), userController.getProfile);
 router.put('/:id/profile', protect, authorizeRoles('Admin'), userController.updateProfile);
 router.post('/:id/change-password', protect, authorizeRoles('Admin'), userController.changePassword);
-router.get('/:id/statistics', protect, authorizeRoles('Admin'), userController.getUserStatistics);
+router.get('/:id/statistics', protect, authorizeRoles('Admin'), userController.getUserStats);
 module.exports = router;

@@ -8,7 +8,7 @@ import '../css/ForgotPassword.css';
 // ═══════════════════════════════════════════════════════════════
 // 🔧 CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
-const DEMO_MODE = true; // ✅ Activé pour tester sans backend
+const DEMO_MODE = false; // ❌ Mode démo désactivé - utilise le backend réel
 const API_BASE_URL = 'http://localhost:5001/api/auth';
 const DEMO_CODE = '123456'; // Code de test en mode démo
 
@@ -470,7 +470,7 @@ const ForgotPassword = () => {
           </div>
 
           <div className="forgot-left-footer">
-            <p className="copyright">© 2026 ETAP. Tous droits réservés.</p>
+            <p className="copyright">© 2026 SMART-TRADE 360°. Tous droits réservés.</p>
           </div>
         </div>
       </div>

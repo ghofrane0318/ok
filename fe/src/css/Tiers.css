@@ -348,6 +348,91 @@
 .btn-save-tiers:hover:not(:disabled) { background:var(--t-navy-mid); transform:translateY(-1px); }
 .btn-save-tiers:disabled             { opacity:.5; cursor:not-allowed; }
 
+/* ── Type filter in table header ────────────────────────────── */
+.th-type-filter {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  white-space: nowrap;
+}
+
+.type-select-filter {
+  font-family: var(--t-font);
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .2rem .5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: background .2s, border-color .2s;
+  appearance: auto;
+}
+
+.type-select-filter:hover,
+.type-select-filter:focus {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.45);
+}
+
+.type-select-filter option {
+  background: var(--t-navy);
+  color: #fff;
+  font-size: .8rem;
+}
+
+/* Badge cliquable dans les lignes */
+.badge-clickable {
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+
+.badge-clickable:hover {
+  transform: scale(1.07);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  opacity: .88;
+}
+
+.badge-clickable:active {
+  transform: scale(.96);
+}
+
+/* Bandeau filtre actif sous le tableau */
+.tiers-filter-active-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem 1.25rem;
+  background: var(--t-navy);
+  color: rgba(255,255,255,.9);
+  font-size: .8125rem;
+  gap: 1rem;
+}
+
+.tiers-filter-active-banner strong {
+  color: #fff;
+}
+
+.tiers-filter-clear {
+  font-family: var(--t-font);
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .25rem .75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s;
+  white-space: nowrap;
+}
+
+.tiers-filter-clear:hover {
+  background: rgba(255,255,255,.22);
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width:1024px) {
   .tiers-header, .tiers-filters, .tiers-legend { padding-left:1.5rem; padding-right:1.5rem; }

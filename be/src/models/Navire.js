@@ -1,12 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const navireSchema = new mongoose.Schema({
   nom: { type: String, required: true },
-  immatriculation: { type: String, unique: true },
-  capacite: Number,
-  pays: { type: mongoose.Schema.Types.ObjectId, ref: 'Pays' },
-  proprietaire: String,
-  dateCreation: { type: Date, default: Date.now }
+  code: { type: String, required: true, unique: true },
+  capacite: { type: Number, default: 0 },
+  portAttache: { type: String },
+  statut: {
+    type: String,
+    enum: ['Disponible', 'En transit', 'En maintenance'],
+    default: 'Disponible'
+  }
 });
 
-module.exports = mongoose.model('Navire', navireSchema);
+module.exports = mongoose.models.Navire || mongoose.model('Navire', navireSchema);

@@ -1,22 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const livraisonSchema = new mongoose.Schema({
   numeroLivraison: { type: String, required: true, unique: true },
-  commande: { type: mongoose.Schema.Types.ObjectId, ref: 'Commande', required: true },
-  transporteur: { type: mongoose.Schema.Types.ObjectId, ref: 'Tiers' },
-  etat: { 
-    type: String, 
-    enum: ['À préparer', 'Prête', 'En cours', 'Livrée', 'Annulée'], 
-    default: 'À préparer' 
+  commande: { type: mongoose.Schema.Types.ObjectId, ref: 'Commande' },
+  transporteur: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  dateLivraison: { type: Date },
+  adresseLivraison: { type: String },
+  commentaire: { type: String, default: '' },
+  statut: {
+    type: String,
+    enum: ['En attente', 'Prête', 'En cours', 'Livrée', 'Annulée'],
+    default: 'En attente'
   },
-  dateDepot: { type: Date, default: Date.now },
-  dateArriveePrevue: Date,
-  dateLivraison: Date,
-  bonLivraisonPDF: String,
-  penalite: { type: Number, default: 0 },
-  commentaire: String,
-  dateCreation: { type: Date, default: Date.now },
-  dateDerniereMiseAJour: { type: Date, default: Date.now }
-});
+  etat: {
+    type: String,
+    enum: ['À préparer', 'Prête', 'En cours', 'Livrée', 'Annulée'],
+    default: 'À préparer'
+  }
+}, { timestamps: true });
 
-module.exports = mongoose.model('Livraison', livraisonSchema);
+module.exports = mongoose.models.Livraison || mongoose.model('Livraison', livraisonSchema);

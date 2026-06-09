@@ -124,10 +124,11 @@ function Navbar() {
       <Link to="/factures" className={`sidebar-link ${isActive('/factures')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Factures</span></Link>
       <Link to="/export-import" className={`sidebar-link ${isActive('/export-import')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExchangeAlt} /><span>Export</span></Link>
       <Link to="/conformite" className={`sidebar-link ${isActive('/conformite')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faCheckCircle} /><span>Conformité</span></Link>
-      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
       <Link to="/tiers" className={`sidebar-link ${isActive('/tiers')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faFileInvoiceDollar} /><span>Tiers</span></Link>
+      <Link to="/historique" className={`sidebar-link ${isActive('/historique')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faHistory} /><span>Historique</span></Link>
       <Link to="/notifications" className={`sidebar-link ${isActive('/notifications')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faBell} /><span>Notifications</span></Link>
       <Link to="/penalites-retard" className={`sidebar-link ${isActive('/penalites-retard')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faExclamationTriangle} /><span>Pénalités retard</span></Link>
+      <Link to="/chatbot" className={`sidebar-link ${isActive('/chatbot')}`} onClick={handleNavigation}><FontAwesomeIcon icon={faRobot} /><span>Assistant</span></Link>
       {renderDropdownProduitsNationaux()}
     </>
   );
@@ -210,7 +211,7 @@ function Navbar() {
 
       <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">ETAP</div>
+          <div className="sidebar-logo">SMART-TRADE 360°</div>
           <small>{role || 'Utilisateur'}</small>
         </div>
         <nav className="sidebar-nav" aria-label="Navigation principale">

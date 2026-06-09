@@ -150,7 +150,7 @@ function ClientDashboard() {
   const [showFactures, setShowFactures] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [selectedTypeLivraison, setSelectedTypeLivraison] = useState('domicile');
-  const [searchTerm, setSearchTerm] = useState('');
+  const searchTerm = ''; // pas de champ recherche actif
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(1);
@@ -453,14 +453,6 @@ function ClientDashboard() {
       {/* Catalogue */}
       {!showStats && !showCart && !showCommandes && !showFactures && (
         <div className="catalogue-section">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="🔍 Rechercher un produit..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
           <div className="products-grid">
             {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
               <div key={category} className="category-section">

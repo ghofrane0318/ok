@@ -224,9 +224,9 @@ const Login = () => {
           
           {/* Logo */}
           <div className="login-logo">
-            <img src={logoTap} alt="Logo ETAP" className="logo-image" />
+            <img src={logoTap} alt="Logo SMART-TRADE 360°" className="logo-image" />
             <div className="logo-text">
-              <h1>ETAP</h1>
+              <h1>SMART-TRADE 360°</h1>
               <p className="logo-subtitle">Entreprise Tunisienne d'Activités Pétrolières</p>
             </div>
           </div>
@@ -266,7 +266,7 @@ const Login = () => {
 
           {/* Footer gauche */}
           <div className="login-left-footer">
-            <p className="copyright">© 2026 ETAP. Tous droits réservés.</p>
+            <p className="copyright">© 2026 SMART-TRADE 360°. Tous droits réservés.</p>
           </div>
         </div>
       </div>
@@ -278,7 +278,7 @@ const Login = () => {
           {/* En-tête */}
           <div className="login-header">
             <h2>Bienvenue</h2>
-            <p>Connectez-vous à votre compte ETAP</p>
+            <p>Connectez-vous à votre compte SMART-TRADE 360°</p>
           </div>
 
           {/* Formulaire */}
@@ -413,7 +413,7 @@ const Login = () => {
             </div>
 
             <p className="footer-note">
-              Besoin d'aide ? <a href="mailto:support@etap.tn" className="contact-link">Contactez-nous</a>
+              Besoin d'aide ? <a href="mailto:support@SMART-TRADE 360°.tn" className="contact-link">Contactez-nous</a>
             </p>
           </div>
         </div>
